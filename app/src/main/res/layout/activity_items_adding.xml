@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:orientation="vertical"
+    tools:context=".closet.ItemsAddingActivity">
+
+    <!-- Top Bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/back_button"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:id="@+id/title_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Items Adding"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textColor="#000000" />
+    </RelativeLayout>
+
+    <!-- Buttons Row: Add New Item & Filter -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- Add New Item Button (Kept the original styling for consistency) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_item"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:text="+ Add New Item"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#000000"
+            app:cornerRadius="12dp"
+            app:strokeColor="#CCCCCC"
+            app:strokeWidth="1dp" />
+
+        <!-- Filter Button -->
+        <ImageButton
+            android:id="@+id/filterButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_circle_filter"
+            android:src="@drawable/ic_filter"
+            android:scaleType="centerInside"
+            android:contentDescription="Filter"
+            app:tint="#000000" />
+    </LinearLayout>
+
+    <!-- Category Tabs ScrollView (FIXED: Added horizontal scrolling for categories) -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="16dp"
+        android:paddingBottom="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- 1. All Button (Selected State: Black - remains unchanged) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="All"
+                android:textSize="14sp"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"
+                app:strokeColor="#CCCCCC"
+                app:strokeWidth="1dp"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
+
+            <!-- 2. Top Button (UPDATED: White Background, Gray Stroke) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_top"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Top"
+                android:textSize="14sp"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"
+                app:strokeColor="#CCCCCC"
+                app:strokeWidth="1dp"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
+
+            <!-- 3. Bottom Button (UPDATED: White Background, Gray Stroke) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_bottom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Bottom"
+                android:textSize="14sp"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"
+                app:strokeColor="#CCCCCC"
+                app:strokeWidth="1dp"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
+
+            <!-- 4. Outerwear Button (UPDATED: White Background, Gray Stroke) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_outerwear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Outerwear"
+                android:textSize="14sp"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"
+                app:strokeColor="#CCCCCC"
+                app:strokeWidth="1dp"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
+
+            <!-- 5. Accessories Button (UPDATED: White Background, Gray Stroke) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_accessories"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Accessories"
+                android:textSize="14sp"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"
+                app:strokeColor="#CCCCCC"
+                app:strokeWidth="1dp"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
+
+            <!-- 6. Footwear Button (UPDATED: White Background, Gray Stroke) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_footwear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="Footwear"
+                android:textSize="14sp"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="1dp"
+                app:cornerRadius="24dp"
+                app:elevation="0dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+    <!-- Continue Button -->
+    <Button
+        android:id="@+id/buttonContinue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Continue"
+        android:visibility="gone"
+        android:layout_margin="16dp"
+        android:backgroundTint="#000000"
+        android:textColor="#FFFFFF" />
+
+</LinearLayout>

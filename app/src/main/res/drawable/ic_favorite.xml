@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960"
+    android:tint="#000000">
+
+    <!-- Filled bookmark -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M200,840V200Q200,167 223.5,143.5Q247,120 280,120H680Q713,120 736.5,143.5Q760,167 760,200V840L480,720 200,840Z"/>
+</vector>

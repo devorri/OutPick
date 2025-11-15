@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    Defines the custom attribute 'filterRowStyle' which can be set in the AppTheme
+    to reference a style for filter rows.
+    The format="reference" indicates that this attribute expects a style resource (@style/...).
+    -->
+    <attr name="filterRowStyle" format="reference" />
+
+    <!-- Defines the custom attributes for the drawer_category_item include layout -->
+    <declare-styleable name="DrawerCategoryItem">
+        <attr name="category_title" format="string" />
+        <attr name="category_icon" format="reference" />
+        <attr name="see_all_id" format="reference" />
+    </declare-styleable>
+</resources>

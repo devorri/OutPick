@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!-- Scrollable content -->
+    <ScrollView
+        android:id="@+id/scrollContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomButtons"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Top bar with Back button, title, and Try On button -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp">
+
+                <!-- Back button -->
+                <ImageButton
+                    android:id="@+id/btn_back"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_arrow_back"
+                    android:contentDescription="Back"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true" />
+
+                <!-- Centered title -->
+                <TextView
+                    android:id="@+id/tv_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Outfit Preview"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_centerInParent="true"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:gravity="center" />
+
+                <!-- Try On icon button (right side) -->
+                <ImageButton
+                    android:id="@+id/btn_try_on"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_try_on"
+                    android:contentDescription="Try On"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:tint="@android:color/black" />
+
+            </RelativeLayout>
+
+            <!-- Outfit Preview wrapped in MaterialCardView -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@android:color/darker_gray"
+                app:strokeWidth="2dp">
+
+                <ImageView
+                    android:id="@+id/previewOutfitImageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="450dp"
+                    android:adjustViewBounds="true"
+                    android:background="@android:color/white"
+                    android:contentDescription="@string/outfit_preview"
+                    android:scaleType="fitXY"
+                    android:visibility="visible" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Favorite icon button under the preview -->
+            <ImageButton
+                android:id="@+id/btn_favorite"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="start"
+                android:layout_marginBottom="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Favorite"
+                app:srcCompat="@drawable/ic_bookmark_border"
+                app:tint="@color/black" />
+
+            <!-- Outfit details -->
+            <TextView
+                android:id="@+id/tv_outfitName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Outfit Name: Elegant Evening"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_event"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Event/Occasion: Wedding Party"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_season"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Season: Summer"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_style"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Style: Casual, Smart"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_gender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gender: Unisex"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Description: Perfect for evening parties or formal dinners."
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="16dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom fixed buttons -->
+    <LinearLayout
+        android:id="@+id/bottomButtons"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/useButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Use"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            app:cornerRadius="30dp"
+            android:backgroundTint="#000000" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/recreateButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:text="Recreate"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            app:cornerRadius="30dp"
+            android:backgroundTint="#000000" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

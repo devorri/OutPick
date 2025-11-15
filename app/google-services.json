@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "176357243869",
+    "project_id": "outpick-closet-app",
+    "storage_bucket": "outpick-closet-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176357243869:android:ebac5172b4df1eca0e1434",
+        "android_client_info": {
+          "package_name": "com.example.outpick"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6Ha53hrD5v2NNrnP8frnGuGlTFDZ_SsQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

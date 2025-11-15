@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 1. Background layer using the rounded shape you already have -->
+    <item android:drawable="@drawable/rounded_square_bg" />
+
+    <!-- 2. Placeholder icon (T-shirt/Top) centered on top of the background -->
+    <item>
+        <bitmap
+            android:src="@drawable/ic_shirt"
+            android:gravity="center"
+            android:tint="#777777"
+            android:alpha="0.8" />
+    </item>
+</layer-list>

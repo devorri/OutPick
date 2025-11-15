@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/popup_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center"
+    android:background="@drawable/popup_background"
+    android:elevation="8dp">
+
+    <!-- Close icon aligned to top right -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/icon_close"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_close"
+            android:layout_gravity="end"
+            android:layout_margin="4dp"
+            android:contentDescription="Close" />
+    </FrameLayout>
+
+    <!-- Spacing below the close icon -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
+
+    <!-- Add Item Button (Oblong) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_add_item"
+        android:layout_width="280dp"
+        android:layout_height="65dp"
+        android:layout_marginBottom="20dp"
+        android:backgroundTint="#FFFFFF"
+        android:text="Add Item"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:cornerRadius="30dp"
+        app:strokeColor="#000000"
+        app:strokeWidth="2dp" />
+
+    <!-- Create Outfit Button (Oblong) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_create_outfit"
+        android:layout_width="280dp"
+        android:layout_height="65dp"
+        android:backgroundTint="#FFFFFF"
+        android:text="Create Outfit"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:cornerRadius="30dp"
+        app:strokeColor="#000000"
+        app:strokeWidth="2dp" />
+</LinearLayout>

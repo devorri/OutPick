@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/contentLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:padding="24dp">
+
+    <!-- Back Button -->
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/back"
+        android:padding="12dp"
+        app:srcCompat="@drawable/ic_arrow_back"
+        app:tint="@android:color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Content Section -->
+    <LinearLayout
+        android:id="@+id/contentLayoutInner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/backButton"
+        app:layout_constraintBottom_toTopOf="@+id/buttonLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Your Photo"
+            android:textColor="@android:color/black"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Add a profile picture and display name."
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+
+        <!-- Profile Photo Card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/profileCardContainer"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="36dp"
+            app:cardCornerRadius="75dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@android:color/white"
+            android:foreground="@drawable/circle_border"
+            android:layout_gravity="center_horizontal">
+
+            <!-- Image (Profile) -->
+            <ImageView
+                android:id="@+id/profileImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_placeholder"
+                android:contentDescription="@string/profile_picture"
+                android:clickable="true"
+                android:focusable="true" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Display Name -->
+        <EditText
+            android:id="@+id/usernameEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter your display name"
+            android:layout_marginTop="32dp"
+            android:inputType="textPersonName"
+            android:gravity="center"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Bottom Buttons -->
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Continue Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/continueButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Continue"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@android:color/black"
+            android:layout_marginTop="8dp"
+            android:minHeight="56dp" />
+
+        <!-- Skip Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/skipButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Skip for now"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@android:color/darker_gray"
+            android:layout_marginTop="12dp"
+            android:minHeight="56dp"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="160dp"
+    android:background="#FFFFFF">
+
+    <!-- Admin Profile Image -->
+    <ImageView
+        android:id="@+id/imgAdminProfile"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/ic_person"
+        android:contentDescription="Admin Profile"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop" />
+
+    <!-- Admin Name -->
+    <TextView
+        android:id="@+id/tvAdminName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Admin"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp" />
+</LinearLayout>

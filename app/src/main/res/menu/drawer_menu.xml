@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- All Clothes (Your Clothes) -->
+    <item
+        android:id="@+id/nav_all_clothes"
+        android:title="All Clothes"
+        android:icon="@drawable/ic_closet" />
+
+    <!-- Outfit History -->
+    <item
+        android:id="@+id/nav_history"
+        android:title="History"
+        android:icon="@drawable/ic_history" />
+
+    <!-- Favorites -->
+    <item
+        android:id="@+id/nav_favorites"
+        android:title="Favorites"
+        android:icon="@drawable/ic_favorite_border" />
+
+    <!-- Setting -->
+    <item
+        android:id="@+id/nav_setting"
+        android:title="Setting"
+        android:icon="@drawable/ic_setting" />
+
+    <!-- Logout -->
+    <item
+        android:id="@+id/nav_logout"
+        android:title="Logout"
+        android:icon="@drawable/ic_logout" />
+
+
+
+</menu>

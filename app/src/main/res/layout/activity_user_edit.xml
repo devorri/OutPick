@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <ScrollView
+        android:id="@+id/scrollForm"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/buttonLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+
+            <!-- Header: Back Button and Title -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingBottom="8dp">
+
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_arrow_back"
+                    android:contentDescription="Back Button"/>
+
+                <TextView
+                    android:id="@+id/txtEditTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Edit User"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
+
+            <!--
+            *** START OF PROFILE IMAGE UPDATE ***
+            Replaced single ImageView with CardView container for circular clipping (like nav_header.xml)
+            NOTE: You will need to ensure 'account_circle' and 'circle_border' drawables exist.
+            -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/profileCardContainer"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center_horizontal"
+                app:cardCornerRadius="60dp"
+                app:cardElevation="4dp"
+                android:layout_marginTop="8dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                android:foreground="@drawable/circle_border"> <!-- Ensure this drawable exists -->
+
+                <ImageView
+                    android:id="@+id/imgProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_placeholder"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Profile Picture"/>
+
+            </androidx.cardview.widget.CardView>
+            <!-- *** END OF PROFILE IMAGE UPDATE *** -->
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChangePicture"
+                android:layout_width="200dp"
+                android:layout_height="48dp"
+                android:text="Change Picture"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@android:color/black"
+                android:layout_marginTop="8dp"
+                app:cornerRadius="24dp"/>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Username"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"/>
+
+            <EditText
+                android:id="@+id/editUsername"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:hint="Username"
+                android:layout_marginTop="4dp"
+                android:inputType="textPersonName"
+                android:background="@drawable/edittext_bg"
+                android:padding="12dp"
+                android:minHeight="48dp"/>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Current Password"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"/>
+
+            <LinearLayout
+                android:id="@+id/linearCurrentPassword"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:background="@drawable/edittext_bg"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+
+                <EditText
+                    android:id="@+id/editCurrentPassword"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:hint="Current Password"
+                    android:inputType="textPassword"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:background="@null"
+                    android:padding="0dp"
+                    android:minHeight="48dp"/>
+
+                <ImageButton
+                    android:id="@+id/btnTogglePassword"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_eye_closed"
+                    android:contentDescription="Toggle Password Visibility"/>
+
+                <ImageButton
+                    android:id="@+id/btnEditPassword"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_pen"
+                    android:contentDescription="Edit Password"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linearNewPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/editNewPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:hint="New Password"
+                    android:inputType="textPassword"
+                    android:background="@drawable/edittext_bg"
+                    android:padding="12dp"
+                    android:minHeight="48dp"/>
+            </LinearLayout>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Gender"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"/>
+
+            <Spinner
+                android:id="@+id/spinnerGender"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"/>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Role"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"/>
+
+            <Spinner
+                android:id="@+id/spinnerRole"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"/>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="16dp"
+        android:background="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Save"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@android:color/black"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@android:color/black"
+            android:layout_marginStart="16dp"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

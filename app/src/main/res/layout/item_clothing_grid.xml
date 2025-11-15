@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="8dp"
+        android:gravity="center_horizontal">
+
+        <!--
+        The ImageView with ID 'item_image' is required by ClothingItemAdapter.java
+        It will display the clothing photo loaded via Glide.
+        -->
+        <ImageView
+            android:id="@+id/item_image"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:contentDescription="Clothing Item Image" />
+
+        <!--
+        The TextView with ID 'item_name' is required by ClothingItemAdapter.java
+        It will display the name of the clothing item.
+        -->
+        <TextView
+            android:id="@+id/item_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:textAlignment="center"
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:text="Item Name"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

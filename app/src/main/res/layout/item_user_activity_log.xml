@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@android:color/white">
+
+    <!-- Username row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Username:"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/tvUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="JohnDoe"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
+
+    <!-- Signup row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Signup:"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/tvSignupDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Feb 2, 2025"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
+
+    <!-- Last Login row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Last Login:"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/tvLastLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mar 1, 2025 10:45 AM"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
+
+    <!-- Last Logout row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Last Logout:"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/tvLastLogout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="N/A"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
+
+    <!-- Role row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Role:"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/tvRole"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
+
+</LinearLayout>

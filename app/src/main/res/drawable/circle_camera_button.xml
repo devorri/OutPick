@@ -1,0 +1,16 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Gray background -->
+    <solid android:color="#9E9E9E" /> <!-- Material Gray 500 -->
+
+    <!-- Size (optional, can be overridden by layout width/height) -->
+    <size
+        android:width="48dp"
+        android:height="48dp" />
+
+    <!-- Optional subtle shadow look -->
+    <stroke
+        android:width="1dp"
+        android:color="#BDBDBD" /> <!-- lighter border -->
+</shape>

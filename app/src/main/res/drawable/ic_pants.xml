@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@android:color/black">
+    <!-- Icon representing a pair of pants/trousers -->
+    <path
+        android:fillColor="@android:color/black"
+        android:pathData="M19,10c-1.1,0 -2,0.9 -2,2v5H7v-5c0,-1.1 -0.9,-2 -2,-2s-2,0.9 -2,2v6c0,1.1 0.9,2 2,2h4v-3h2v3h4c1.1,0 2,-0.9 2,-2v-6c0,-1.1 -0.9,-2 -2,-2zM12,4L8,8h8L12,4z"/>
+</vector>

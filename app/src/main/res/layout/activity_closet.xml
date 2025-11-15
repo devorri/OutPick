@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Main Layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Top Bar -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="#EEEEEE"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <ImageView
+                android:id="@+id/imageLogo"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_logo1"
+                android:contentDescription="Logo"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <ImageView
+                android:id="@+id/iconProfile"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_profile"
+                android:contentDescription="Profile"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <ImageView
+                android:id="@+id/iconFilter"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_toStartOf="@id/iconProfile"
+                android:layout_marginEnd="8dp"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_filter"
+                android:contentDescription="Filter"
+                android:clickable="true"
+                android:focusable="true" />
+        </RelativeLayout>
+
+        <!-- GridView for Clothes -->
+        <GridView
+            android:id="@+id/gridViewClothes"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:numColumns="3"
+            android:verticalSpacing="10dp"
+            android:horizontalSpacing="10dp"
+            android:padding="10dp"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- Navigation Drawer -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        app:menu="@menu/drawer_menu"
+        app:headerLayout="@layout/nav_header"
+        android:background="#D3D3D3"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/black" />
+</androidx.drawerlayout.widget.DrawerLayout>

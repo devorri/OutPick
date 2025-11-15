@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:id="@+id/scrollViewContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/saveButton"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:id="@+id/mainContentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- Top Bar with Back Button and Title -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <ImageView
+                    android:id="@+id/backButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_arrow_back"
+                    android:contentDescription="Back"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    app:tint="#000000" />
+
+                <TextView
+                    android:id="@+id/titleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Item Details"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:layout_centerInParent="true" />
+            </RelativeLayout>
+
+            <!-- Image Preview -->
+            <ImageView
+                android:id="@+id/previewImageView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:layout_marginBottom="24dp"
+                android:background="#E0E0E0"
+                android:contentDescription="Selected image preview" />
+
+            <!-- Season Toggle -->
+            <LinearLayout
+                android:id="@+id/seasonToggleLayout"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@color/white"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/seasonToggleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Season"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:id="@+id/selectedSeasonText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text=""
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageView
+                    android:id="@+id/seasonArrow"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:tint="#000000"
+                    android:src="@drawable/ic_arrow_down" />
+            </LinearLayout>
+
+            <!-- Season Subcategories -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/seasonSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="El Nino" style="@style/Chip" />
+                <TextView android:text="La Niña" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Occasion Toggle -->
+            <LinearLayout
+                android:id="@+id/occasionToggleLayout"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@color/white"
+                android:padding="12dp"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:id="@+id/occasionToggleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Occasion"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:id="@+id/selectedOccasionText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text=""
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageView
+                    android:id="@+id/occasionArrow"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:tint="#000000"
+                    android:src="@drawable/ic_arrow_down" />
+            </LinearLayout>
+
+            <!-- Occasion Subcategories -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/occasionSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="Daily" style="@style/Chip" />
+                <TextView android:text="Work" style="@style/Chip" />
+                <TextView android:text="Date" style="@style/Chip" />
+                <TextView android:text="Formal" style="@style/Chip" />
+                <TextView android:text="Travel" style="@style/Chip" />
+                <TextView android:text="Home" style="@style/Chip" />
+                <TextView android:text="Party" style="@style/Chip" />
+                <TextView android:text="Sport" style="@style/Chip" />
+                <TextView android:text="Special" style="@style/Chip" />
+                <TextView android:text="School" style="@style/Chip" />
+                <TextView android:text="Beach" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Category Toggle -->
+            <LinearLayout
+                android:id="@+id/categoryToggleLayout"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@color/white"
+                android:padding="12dp"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:id="@+id/categoryToggleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Category"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000" />
+
+                <TextView
+                    android:id="@+id/selectedCategoryText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text=""
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageView
+                    android:id="@+id/categoryArrow"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:tint="#000000"
+                    android:src="@drawable/ic_arrow_down" />
+            </LinearLayout>
+
+            <!-- Main Categories -->
+            <LinearLayout
+                android:id="@+id/mainCategoriesLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+
+                <!-- Row 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3">
+
+                    <Button
+                        android:id="@+id/btnTops"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tops" />
+
+                    <Button
+                        android:id="@+id/btnBottom"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Bottom" />
+
+                    <Button
+                        android:id="@+id/btnAccessories"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Accessories" />
+                </LinearLayout>
+
+                <!-- Row 2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2"
+                    android:layout_marginTop="8dp">
+
+                    <Button
+                        android:id="@+id/btnOuterwear"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Outerwear" />
+
+                    <Button
+                        android:id="@+id/btnFootwear"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Footwear" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Tops Subcategories -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topsSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="T-shirts" style="@style/Chip" />
+                <TextView android:text="Long Sleeve T-shirts" style="@style/Chip" />
+                <TextView android:text="Sleeveless T-shirts" style="@style/Chip" />
+                <TextView android:text="Polo Shirts" style="@style/Chip" />
+                <TextView android:text="Crop Tops" style="@style/Chip" />
+                <TextView android:text="Blouses" style="@style/Chip" />
+                <TextView android:text="Sweatshirts" style="@style/Chip" />
+                <TextView android:text="Hoodies" style="@style/Chip" />
+                <TextView android:text="Sweaters" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Pants Subcategories -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/pantsSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="Shorts" style="@style/Chip" />
+                <TextView android:text="Jeans" style="@style/Chip" />
+                <TextView android:text="Trousers" style="@style/Chip" />
+                <TextView android:text="Track Pants" style="@style/Chip" />
+                <TextView android:text="Leggings" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Accessories Subcategories -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/accessoriesSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="Watch" style="@style/Chip" />
+                <TextView android:text="Sunglasses" style="@style/Chip" />
+                <TextView android:text="Necklace" style="@style/Chip" />
+                <TextView android:text="Bracelet" style="@style/Chip" />
+                <TextView android:text="Earrings" style="@style/Chip" />
+                <TextView android:text="Rings" style="@style/Chip" />
+                <TextView android:text="Hat/Cap" style="@style/Chip" />
+                <TextView android:text="Belt" style="@style/Chip" />
+                <TextView android:text="Bag" style="@style/Chip" />
+                <TextView android:text="Scarf" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Outerwear Subcategories -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/outerwearSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="Denim Jacket" style="@style/Chip" />
+                <TextView android:text="Leather Jacket" style="@style/Chip" />
+                <TextView android:text="Blazer" style="@style/Chip" />
+                <TextView android:text="Trench Coat" style="@style/Chip" />
+                <TextView android:text="Puffer Jacket" style="@style/Chip" />
+                <TextView android:text="Cardigan" style="@style/Chip" />
+                <TextView android:text="Peacoat" style="@style/Chip" />
+                <TextView android:text="Hoodie" style="@style/Chip" />
+                <TextView android:text="Parka" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Footwear Subcategories -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/footwearSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="Sneakers" style="@style/Chip" />
+                <TextView android:text="Boots" style="@style/Chip" />
+                <TextView android:text="Sandals" style="@style/Chip" />
+                <TextView android:text="Heels" style="@style/Chip" />
+                <TextView android:text="Flats / Ballerina Shoes" style="@style/Chip" />
+                <TextView android:text="Dress Shoes" style="@style/Chip" />
+                <TextView android:text="Slip-Ons / Mules" style="@style/Chip" />
+                <TextView android:text="Running/Training Shoes" style="@style/Chip" />
+                <TextView android:text="Slippers" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Save Button fixed at bottom -->
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Save"
+        android:backgroundTint="#000000"
+        android:textColor="#FFFFFF"
+        android:layout_margin="16dp" />
+
+    <!-- Progress Bar centered -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        style="?android:attr/progressBarStyleLarge"
+        android:visibility="gone" />
+
+</RelativeLayout>

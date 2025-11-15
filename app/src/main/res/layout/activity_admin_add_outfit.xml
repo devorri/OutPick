@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Header: Back Button, Title, and Divider -->
+        <LinearLayout
+            android:id="@+id/top_bar_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Back Button and Title -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <!-- Back Button (Left) -->
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_arrow_back"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Back"
+                    app:tint="@android:color/black" />
+
+                <!-- Title: Outfit Create (Center) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Outfit Create"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+            </RelativeLayout>
+
+            <!-- Slim, Light Gray Divider Line -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0" />
+
+        </LinearLayout>
+
+        <!-- Main Content Area (Workspace and Buttons) -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- 1. Workspace (Fills the remaining vertical space) - NO BACKGROUND -->
+            <FrameLayout
+                android:id="@+id/outfitWorkspace"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:contentDescription="Outfit Creation Area"/>
+
+            <!-- 2. Button to choose items to place in the workspace -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChooseItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Items"
+                android:textColor="@android:color/white"
+                app:cornerRadius="50dp"
+                app:backgroundTint="@android:color/black"
+                android:layout_marginBottom="16dp" />
+
+            <!-- 3. Button to save the final created outfit -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveOutfit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Save Outfit"
+                android:textColor="@android:color/white"
+                app:cornerRadius="50dp"
+                app:backgroundTint="@android:color/black" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

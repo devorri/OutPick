@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- White background for the workspace area -->
+    <solid android:color="@android:color/white" />
+
+    <!-- A light gray stroke/border to visually define the workspace area -->
+    <stroke
+        android:width="2dp"
+        android:color="@android:color/darker_gray"
+        android:dashWidth="8dp"
+        android:dashGap="8dp" />
+
+    <!-- Rounded corners for a modern look -->
+    <corners android:radius="16dp" />
+
+    <!-- Optional: Add some padding if you want to ensure dynamic content isn't right against the edge -->
+    <padding
+        android:left="8dp"
+        android:top="8dp"
+        android:right="8dp"
+        android:bottom="8dp" />
+</shape>

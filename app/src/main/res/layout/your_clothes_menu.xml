@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Main content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Include your top bar and username drawer here (if any) -->
+
+        <!-- Screen label -->
+        <TextView
+            android:id="@+id/screen_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Clothes"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_margin="16dp" />
+
+        <!-- RecyclerView to show clothes -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical" />
+
+        <!-- Bottom bar (initially hidden) -->
+        <LinearLayout
+            android:id="@+id/bottom_action_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:background="@color/light_gray"
+            android:padding="8dp"
+            android:gravity="center"
+            android:elevation="4dp">
+
+            <Button
+                android:id="@+id/button_add_to_closet"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Add to Closet" />
+
+            <Button
+                android:id="@+id/button_delete"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Delete" />
+
+            <Button
+                android:id="@+id/button_more"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="More" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.drawerlayout.widget.DrawerLayout>

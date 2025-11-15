@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:background="@drawable/bg_bottom_sheet_oblong">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Title row: Customize centered + X icon right -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:paddingBottom="12dp">
+
+            <TextView
+                android:id="@+id/text_customize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Customize"
+                android:textColor="#000000"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <!-- FIX: Increased parent layout size to ensure 48dp x 48dp touch area. -->
+            <LinearLayout
+                android:id="@+id/btn_close_wrapper"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Close">
+                <ImageView
+                    android:id="@+id/btn_close"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_close"
+                    app:tint="@android:color/black" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0" />
+
+        <!-- Event Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Event/Occasion"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="@android:color/black" />
+
+        <!-- Event/Season/Style Buttons in Flexbox -->
+        <com.google.android.flexbox.FlexboxLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:flexWrap="wrap"
+            app:justifyContent="flex_start"
+            app:alignItems="flex_start">
+
+            <!-- Event Buttons (Unchanged) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWorkformHome"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Work from Home"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWorkout"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Workout"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOffice"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Office"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDating"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Dating"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDailyroutine"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Daily Routine"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRelaxingathome"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Relaxing at Home"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnParty"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Party"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTravelling"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Travelling"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBeach"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Beach"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <!-- Space -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
+
+            <!-- Season Section Title -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp"
+                android:text="Climate Phases"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Season Buttons (UPDATED: Only El Niño and La Niña remain) -->
+
+            <!-- R.id.btnSummer renamed to El Niño -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSummer"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="El Niño"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <!-- R.id.btnRainy renamed to La Niña -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRainy"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="La Niña"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <!-- The following buttons (Spring, Fall, Winter) were removed from the XML layout -->
+
+            <!-- Space -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
+
+            <!-- Style Section Title Row (Unchanged) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="8dp">
+
+                <!-- Style Label -->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Style"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- "All" Clickable Area -->
+                <!-- FIX: Added minWidth and minHeight to enforce 48dp touch target size -->
+                <LinearLayout
+                    android:id="@+id/layoutStyleAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp">
+
+                    <TextView
+                        android:id="@+id/txtStyleAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="All"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="4dp"
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="@color/black" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Style Buttons (Unchanged) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCasual"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Casual"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSporty"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Sporty"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCozy"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Cozy"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStreetstyle"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Streetstyle"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSmartcasual"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Smart Casual"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSmart"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Smart"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <!-- New Formal Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFormal"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="Formal"
+                android:textAllCaps="false"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="50dp"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+        </com.google.android.flexbox.FlexboxLayout>
+
+        <!-- Apply Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnApply"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="Apply"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/black" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

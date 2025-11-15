@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="light_gray">#D3D3D3</color> <!-- Light gray -->
+    <color name="blue">#2196F3</color>
+    <color name="fuchsia">#FF4081</color> <!-- Added missing color -->
+    <color name="pink">#FF4081</color>
+
+    <!-- Material Design Colors -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+
+    <!-- Custom Colors -->
+    <color name="category_toggle_text">#000000</color>
+</resources>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_suggestion_preview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeColor="@color/light_gray"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:id="@+id/layout_suggestion_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@android:color/white">
+
+        <!-- Outfit Image -->
+        <ImageView
+            android:id="@+id/ivPreviewImage"
+            android:layout_width="300dp"
+            android:layout_height="400dp"
+            android:layout_gravity="center"
+            android:background="@android:color/darker_gray"
+            android:contentDescription="Outfit Preview"
+            android:scaleType="fitCenter" />
+
+        <!-- Outfit Name -->
+        <TextView
+            android:id="@+id/tvPreviewName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="Outfit Name"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Category -->
+        <TextView
+            android:id="@+id/tvPreviewCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="Category"
+            android:textSize="16sp" />
+
+        <!-- Event/Occasion -->
+        <TextView
+            android:id="@+id/tvPreviewEvent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="Event/Occasion"
+            android:textSize="16sp" />
+
+        <!-- Date -->
+        <TextView
+            android:id="@+id/tvPreviewDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="Date"
+            android:textSize="16sp" />
+
+        <!-- Action -->
+        <TextView
+            android:id="@+id/tvPreviewAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="Action"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

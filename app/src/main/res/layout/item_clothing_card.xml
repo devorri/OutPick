@@ -1,0 +1,33 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp">
+
+    <!-- Clothing image -->
+    <ImageView
+        android:id="@+id/image_clothing"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="fitXY"
+        android:background="@drawable/image_background" />
+
+    <!-- Gray overlay -->
+    <View
+        android:id="@+id/selection_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone" />
+
+    <!-- Circle check icon -->
+    <ImageView
+        android:id="@+id/check_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="end|top"
+        android:layout_margin="8dp"
+        android:background="@drawable/circle_gray_background"
+        android:src="@drawable/ic_check_white"
+        android:padding="4dp"
+        android:visibility="gone" />
+</FrameLayout>

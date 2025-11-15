@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Allow sharing images from the app's Pictures directory -->
+    <external-files-path
+        name="camera_images"
+        path="Pictures/" />
+
+    <!-- Allow sharing images from the app's Downloads directory if needed -->
+    <external-files-path
+        name="download_images"
+        path="Download/" />
+
+    <!-- Allow sharing images from the app's internal files/images folder -->
+    <files-path
+        name="internal_images"
+        path="images/" />
+
+    <!-- Fallback: allow FileProvider to grant URIs for *any* file
+         in app-specific external storage -->
+    <external-files-path
+        name="external_files"
+        path="." />
+
+</paths>

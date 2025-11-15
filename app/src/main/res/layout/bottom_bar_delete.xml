@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bottomBar"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:background="@color/white"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:visibility="gone"
+    android:elevation="8dp">
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="8dp"
+        android:backgroundTint="@color/blue"
+        android:text="Delete"
+        android:textColor="@android:color/white"
+        android:textStyle="bold" />
+
+</LinearLayout>

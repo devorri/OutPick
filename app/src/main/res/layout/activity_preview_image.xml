@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:padding="0dp">
+
+    <!-- Top Bar Layout (Header) - Consistent top padding -->
+    <LinearLayout
+        android:id="@+id/topBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_alignParentTop="true"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:background="#FFFFFF"
+        android:elevation="2dp">
+
+        <!-- Back Button - Use a standard back arrow and keep 48dp touch target -->
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back button"
+            app:tint="#1E1E1E" />
+
+        <TextView
+            android:id="@+id/detailsTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Item Details"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#1E1E1E" />
+
+        <!-- Placeholder view to balance the title -->
+        <View
+            android:layout_width="48dp"
+            android:layout_height="1dp" />
+    </LinearLayout>
+
+    <!-- Scrollable Content Area -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/topBarLayout"
+        android:layout_above="@id/saveButton">
+
+        <LinearLayout
+            android:id="@+id/mainContentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp">
+
+            <!-- Image Preview Area wrapped in CardView -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp">
+
+                <ImageView
+                    android:id="@+id/previewImageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="500dp"
+                    android:background="#EFEFEF"
+                    android:contentDescription="Selected image preview"
+                    android:scaleType="fitXY"
+                    tools:src="@tools:sample/backgrounds/scenic" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- SECTION: Filter Toggles (Season, Occasion, Category) -->
+
+            <!-- Season Toggle Row: Using inline attributes for FilterRow style -->
+            <LinearLayout
+                android:id="@+id/seasonToggleLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp">
+
+                <TextView
+                    android:id="@+id/seasonToggleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Season"
+                    android:textSize="17sp"
+                    android:textColor="#333333"
+                    android:textStyle="normal"
+                    android:layout_marginEnd="16dp" />
+
+                <TextView
+                    android:id="@+id/selectedSeasonText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    tools:text="Summer, Rainy"
+                    android:textSize="16sp"
+                    android:textColor="#666666"
+                    android:paddingEnd="8dp" />
+
+                <!-- ARROW: Using a smaller, cleaner right-chevron indicator -->
+                <ImageView
+                    android:id="@+id/seasonArrow"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:tint="#999999"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    android:contentDescription="Expand/Collapse Indicator" />
+            </LinearLayout>
+
+            <!-- Season Subcategories (Chips) - UPDATED to show only Summer and Rainy -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/seasonSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <!-- Keeping only Summer chip -->
+                <TextView android:text="El Niño" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <!-- Added Rainy chip -->
+                <TextView android:text="La Niña" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#F0F0F0"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp" />
+
+            <!-- Occasion Toggle Row -->
+            <LinearLayout
+                android:id="@+id/occasionToggleLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp">
+
+                <TextView
+                    android:id="@+id/occasionToggleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Occasion"
+                    android:textSize="17sp"
+                    android:textColor="#333333"
+                    android:textStyle="normal"
+                    android:layout_marginEnd="16dp" />
+
+                <TextView
+                    android:id="@+id/selectedOccasionText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    tools:text="Daily, Work, Date"
+                    android:textSize="16sp"
+                    android:textColor="#666666"
+                    android:paddingEnd="8dp" />
+
+                <!-- ARROW: Using a smaller, cleaner right-chevron indicator -->
+                <ImageView
+                    android:id="@+id/occasionArrow"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:tint="#999999"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    android:contentDescription="Expand/Collapse Indicator" />
+            </LinearLayout>
+
+            <!-- Occasion Subcategories (Chips) -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/occasionSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <!-- Using inline attributes for Chip style -->
+                <TextView android:text="Daily" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Work" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Formal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Travel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Home" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Party" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Sport" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Special" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="School" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Beach" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#F0F0F0"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp" />
+
+            <!-- Category Toggle Row -->
+            <LinearLayout
+                android:id="@+id/categoryToggleLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp">
+
+                <TextView
+                    android:id="@+id/categoryToggleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Category"
+                    android:textSize="17sp"
+                    android:textColor="#333333"
+                    android:textStyle="normal"
+                    android:layout_marginEnd="16dp" />
+
+                <TextView
+                    android:id="@+id/selectedCategoryText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    tools:text="Tops, Footwear"
+                    android:textSize="16sp"
+                    android:textColor="#666666"
+                    android:paddingEnd="8dp" />
+
+                <!-- ARROW: Using a smaller, cleaner right-chevron indicator -->
+                <ImageView
+                    android:id="@+id/categoryArrow"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:tint="#999999"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    android:contentDescription="Expand/Collapse Indicator" />
+            </LinearLayout>
+
+            <!-- Main Categories (Buttons) -->
+            <LinearLayout
+                android:id="@+id/mainCategoriesLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone">
+
+                <!-- Row 1: Tops, Bottom, Accessories -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3"
+                    android:layout_marginBottom="12dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTops"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tops"
+                        android:textSize="14sp"
+                        android:minHeight="48dp"
+                        app:cornerRadius="12dp"
+                        app:backgroundTint="#F8F8F8"
+                        android:textColor="#333333"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBottom"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Bottoms"
+                        android:textSize="14sp"
+                        android:minHeight="48dp"
+                        app:cornerRadius="12dp"
+                        app:backgroundTint="#F8F8F8"
+                        android:textColor="#333333"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAccessories"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Accessories"
+                        android:textSize="14sp"
+                        android:minHeight="48dp"
+                        app:cornerRadius="12dp"
+                        app:backgroundTint="#F8F8F8"
+                        android:textColor="#333333" />
+                </LinearLayout>
+
+                <!-- Row 2: Outerwear, Footwear -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOuterwear"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Outerwear"
+                        android:textSize="14sp"
+                        android:minHeight="48dp"
+                        app:cornerRadius="12dp"
+                        app:backgroundTint="#F8F8F8"
+                        android:textColor="#333333"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnFootwear"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Footwear"
+                        android:textSize="14sp"
+                        android:minHeight="48dp"
+                        app:cornerRadius="12dp"
+                        app:backgroundTint="#F8F8F8"
+                        android:textColor="#333333" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Subcategory Chip Layouts (Tops) -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topsSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <!-- Using inline attributes for Chip style -->
+                <TextView android:text="T-shirts" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Long Sleeve T-shirts" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Sleeveless T-shirts" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Polo Shirts" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Crop Tops" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Blouses" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Sweatshirts" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Hoodies" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Sweaters" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/pantsSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <!-- Using inline attributes for Chip style -->
+                <TextView android:text="Shorts" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Jeans" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Trousers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Track Pants" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Leggings" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Skirts" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Dresses" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/accessoriesSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <!-- Accessories Chips -->
+                <TextView android:text="Watch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Sunglasses" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Necklace" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Hat/Cap" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Belt" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Scarf" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Socks" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- Outerwear Subcategories (Chips) -->
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/outerwearSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <!-- Using inline attributes for Chip style -->
+                <TextView android:text="Denim Jacket" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Leather Jacket" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Blazer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Trench Coat" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Puffer Jacket" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Cardigan" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Peacoat" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Parka" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/footwearSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <!-- Using inline attributes for Chip style -->
+                <TextView android:text="Sneakers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Boots" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Sandals" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Heels" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Flats / Ballerina Shoes" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Dress Shoes" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Running/Training Shoes" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+                <TextView android:text="Slippers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginEnd="8dp" android:layout_marginBottom="8dp" android:background="#E8E8E8" android:textColor="#333333" android:textSize="14sp" android:includeFontPadding="false" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Save Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="Save Item Details"
+        android:textSize="16sp"
+        android:minHeight="56dp"
+        app:cornerRadius="28dp"
+        app:backgroundTint="#000000"
+        android:textColor="#FFFFFF" />
+
+    <!-- Progress Bar (Overlay) -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        style="?android:attr/progressBarStyleLarge"
+        android:visibility="gone" />
+
+</RelativeLayout>

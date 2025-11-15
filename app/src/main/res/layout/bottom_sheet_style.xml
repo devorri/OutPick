@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet_oblong"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="16dp"
+    android:elevation="8dp">
+
+    <!-- Header with Back Arrow and Center Title -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:background="@android:color/white">
+
+        <ImageView
+            android:id="@+id/btnBackStyle"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_back"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:id="@+id/textStyleTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Style"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_centerInParent="true" />
+    </RelativeLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0" />
+
+    <!-- Scrollable style options -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/layoutStyles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:paddingVertical="4dp">
+
+            <!-- Existing CheckBoxes -->
+            <CheckBox
+                android:id="@+id/checkCasual"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Casual"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkSporty"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Sporty"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkCozy"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Cozy"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkStreetStyle"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="StreetStyle"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkSmartCasual"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Smart Casual"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkSmart"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Smart"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <!-- NEW Formal Checkbox -->
+            <CheckBox
+                android:id="@+id/checkFormal"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Formal"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <!-- Remaining CheckBoxes -->
+            <CheckBox
+                android:id="@+id/checkClassic"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Classic"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkFestive"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Festive"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkLounge"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Lounge"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkPreppy"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Preppy"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkFeminine"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Feminine"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkMinimalist"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Minimalist"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkAthleisure"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Athleisure"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkElegant"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Elegant"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkBusinessCasual"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Business Casual"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkChic"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Chic"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+            <CheckBox
+                android:id="@+id/checkRomantic"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:text="Romantic"
+                android:textSize="16sp"
+                android:textColor="@android:color/black"
+                android:buttonTint="@color/black" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Fixed Apply Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnApplyStyle"
+        android:layout_width="327dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:layout_marginVertical="12dp"
+        android:text="Apply"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        app:backgroundTint="#000000"
+        app:cornerRadius="24dp"
+        app:iconPadding="0dp"
+        app:rippleColor="#333333" />
+</LinearLayout>

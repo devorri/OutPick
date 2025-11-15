@@ -1,0 +1,132 @@
+<resources>
+
+    <!-- App Identity -->
+    <string name="app_name">OutPick</string>
+
+    <!-- Main Action Buttons -->
+    <string name="button_log_in">Log In</string>
+    <string name="button_sign_up">Sign Up</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="choose_image">Choose Image</string>
+    <string name="save_to_db">Save to Database</string>
+    <string name="wear_outfit_button">Wear Outfit</string>
+    <string name="remove_all_button">Remove All Clothes</string>
+    <string name="selective_remove_button">Selective Remove</string>
+    <string name="filter_button">Filter</string>
+
+    <!-- Bottom Navigation Labels -->
+    <string name="camera">Camera</string>
+    <string name="extra_clothes">Extra Clothes</string>
+    <string name="personal_closet">Personal Closet</string>
+
+    <!-- Clothing and Outfit UI Text -->
+    <string name="clothing_image_desc">Clothing image</string>
+    <string name="clothing_name_placeholder">Clothing Name</string>
+    <string name="image_preview">Preview of selected clothing item</string>
+    <string name="outfit_image">Outfit image</string>
+    <string name="favorite">Favorite</string>
+
+    <!-- Content Descriptions for Accessibility -->
+    <string name="avatar_mannequin_description">Avatar mannequin image</string>
+    <string name="bottom_clothing_description">Bottom clothing item</string>
+    <string name="top_clothing_description">Top clothing item</string>
+    <string name="toggle_password">Toggle password visibility</string>
+    <string name="content_logo">App Logo</string>
+    <string name="content_filter">Filter Icon</string>
+    <string name="content_profile">Profile Icon</string>
+    <string name="profile_image">Profile Image</string>
+    <string name="username_placeholder">USERNAME</string>
+
+    <!-- Gender Selection UI Text -->
+    <string name="gender_female">Female</string>
+    <string name="gender_male">Male</string>
+    <string name="label_gender">Select Gender</string>
+
+    <!-- Input Hints -->
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_confirm_password">Confirm Password</string>
+
+    <!-- Login / Signup Flow Text -->
+    <string name="text_login_prompt">Already have an account?</string>
+    <string name="text_signup_prompt_label">Don’t have an account?</string>
+    <string name="text_signup_link">Sign Up</string>
+
+    <!-- Main Menu Button Labels -->
+    <string name="upload_clothes">Upload Clothes</string>
+    <string name="view_closet">View Closet</string>
+    <string name="create_outfit">Create Outfit</string>
+    <string name="outfit_history">Outfit History</string>
+    <string name="try_on">Try On</string>
+
+    <!-- Navigation Drawer Items -->
+    <string name="categories">Categories</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="favorites">Favorites</string>
+    <string name="history">History</string>
+    <string name="logout">Log Out</string>
+    <string name="your_clothes">Your Clothes</string>
+
+    <!-- Remove Dialog Options -->
+    <string name="remove_all_option_dialog">Remove All</string>
+    <string name="remove_bottom_option">Remove Bottom</string>
+    <string name="remove_top_option">Remove Top</string>
+    <string name="select_what_to_remove_title">Select what to remove</string>
+
+    <!-- Toolbar Icon Descriptions -->
+    <string name="filter">Filter</string>
+    <string name="logo">Logo</string>
+    <string name="profile">Profile</string>
+
+    <!-- Close, Back, and General Toolbar Options -->
+    <string name="back">Back</string>
+    <string name="more_options">More options</string>
+    <string name="close_button">Close</string>
+    <string name="content_close">Close Button</string>
+    <string name="outfit_preview">Outfit Preview</string>
+
+    <!-- Outfit Categories Array -->
+    <string-array name="outfit_categories">
+        <item>Casual</item>
+        <item>Sporty</item>
+        <item>Cozy</item>
+        <item>Streetstyle</item>
+        <item>Smart Casual</item>
+    </string-array>
+
+    <!-- Gender Selection Array for Spinner -->
+    <string-array name="gender_array">
+        <item>Male</item>
+        <item>Female</item>
+        <item>Other</item>
+    </string-array>
+
+    <!-- Role Selection Array for Spinner -->
+    <string-array name="role_array">
+        <item>User</item>
+        <item>Admin</item>
+    </string-array>
+
+    <!-- Strings for Snapshot Details -->
+    <string name="snapshot_image">Snapshot image</string>
+    <string name="outfit_name">Outfit Name</string>
+    <string name="outfit_categories">Categories</string>
+
+    <!-- Content Description for a Single Clothing Item -->
+    <string name="clothing_item">Clothing item</string>
+
+    <!-- Strings for Filter and Suggestion UI -->
+    <string name="gender_icon">Gender</string>
+    <string name="search_icon">Search</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+
+    <!-- Toolbar title for ItemSelectionActivity -->
+    <string name="title_activity_item_selection">Select Item</string>
+
+    <!-- Added for Login Profile screen -->
+    <string name="profile_picture">Profile Picture</string>
+    <string name="add_photo">Add Photo</string>
+    <string name="skip_for_now">Skip for now</string>
+
+</resources>

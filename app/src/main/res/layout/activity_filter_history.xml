@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_filter_bottom_sheet">
+
+    <!-- Scrollable content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="16dp">
+
+                <!-- Back button -->
+                <ImageView
+                    android:id="@+id/btnBack"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_arrow_back"
+                    android:contentDescription="Back" />
+
+                <!-- Title -->
+                <TextView
+                    android:id="@+id/txtTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Filter"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:gravity="center" />
+
+                <!-- Search icon -->
+                <ImageView
+                    android:id="@+id/btnSearch"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_search"
+                    android:contentDescription="Search" />
+            </LinearLayout>
+
+            <!-- Search container (hidden initially) -->
+            <LinearLayout
+                android:id="@+id/searchContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Search"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="6dp" />
+
+                <EditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:hint="Search by date, name, or category"
+                    android:padding="8dp"
+                    android:background="@drawable/search_background"
+                    android:inputType="text" />
+            </LinearLayout>
+
+            <!-- 🔹 Event/Occasion Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="-10dp"
+                android:text="Event/Occasion"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnWorkformHome"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Work from Home"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnWorkout"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Workout"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnOffice"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Office"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDating"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Dating"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDailyroutine"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Daily Routine"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <!-- Formal Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFormal"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Formal"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRelaxingathome"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Relaxing at Home"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnParty"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Party"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTravelling"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Travelling"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBeach"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Beach"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- 🔹 Season Section (Updated for El Niño and La Niña) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="-10dp"
+                android:text="Seasons"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start">
+
+                <!-- Renamed from btnSummer to btnElNino -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnElNino"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="El Niño"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <!-- Renamed from btnRainy to btnLaNina -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLaNina"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="La Niña"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <!-- Removed Spring, Fall, Winter buttons -->
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- 🔹 Style Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingBottom="8dp"
+                android:layout_marginTop="12dp">
+
+                <TextView
+                    android:id="@+id/textStyleLabelLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Style"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/layoutStyleAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:id="@+id/allTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="All"
+                        android:textColor="@android:color/black"
+                        android:textStyle="bold"
+                        android:padding="8dp" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="4dp"
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="@color/black" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Style Buttons row 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCasual"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Casual"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSporty"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Sporty"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCozy"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Cozy"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+            </LinearLayout>
+
+            <!-- Style Buttons row 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStreetstyle"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Streetstyle"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSmartcasual"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:text="Smart Casual"
+                    android:textAllCaps="false"
+                    android:textColor="@android:color/black"
+                    android:textSize="13sp"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="50dp"
+                    app:strokeColor="@color/light_gray"
+                    app:strokeWidth="2dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Apply button fixed at bottom -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnApply"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Apply"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        app:cornerRadius="30dp"
+        android:backgroundTint="#000000"
+        android:layout_margin="16dp" />
+
+</LinearLayout>

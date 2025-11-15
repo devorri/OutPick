@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".closet.YourClothesActivity">
+
+    <RelativeLayout
+        android:id="@+id/rootLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF">
+
+        <RelativeLayout
+            android:id="@+id/headerBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:elevation="2dp"
+            android:background="#FFFFFF">
+
+            <ImageView
+                android:id="@+id/back_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_centerVertical="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_back"
+                android:contentDescription="Back"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/your_clothes_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Your Clothes"
+                android:textColor="#000000"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/moreOptionsButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_more_vert"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="More" />
+        </RelativeLayout>
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_below="@id/headerBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/filterCard"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#F0F0F0"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
+                <ImageView
+                    android:id="@+id/buttonFilter"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_filter1"
+                    android:contentDescription="Filter" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/sortCard"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="12dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#F0F0F0"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
+
+                <LinearLayout
+                    android:id="@+id/sortDropdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/recentlyAddedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Recently added"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/dropdownIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="4dp"
+                        android:src="@drawable/ic_dropdown"
+                        android:contentDescription="Dropdown" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <HorizontalScrollView
+            android:id="@+id/categoryTabsScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/topBar"
+            android:scrollbars="none"
+            android:paddingTop="4dp"
+            android:paddingBottom="8dp">
+
+            <LinearLayout
+                android:id="@+id/categoryTabsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:paddingStart="16dp">
+
+                <LinearLayout
+                    android:id="@+id/tab_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingEnd="24dp">
+                    <TextView
+                        android:id="@+id/tabText_all"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="All"
+                        android:textSize="16sp"
+                        android:textColor="#000000"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:textStyle="bold" />
+                    <View
+                        android:id="@+id/underline_all"
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="4dp"
+                        android:background="#000000" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tab_tops"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="24dp">
+                    <TextView
+                        android:id="@+id/tabText_tops"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tops"
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:textStyle="normal" />
+                    <View
+                        android:id="@+id/underline_tops"
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="4dp"
+                        android:background="#000000"
+                        android:visibility="invisible" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tab_bottoms"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="24dp">
+                    <TextView
+                        android:id="@+id/tabText_bottoms"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bottoms"
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:textStyle="normal" />
+                    <View
+                        android:id="@+id/underline_bottoms"
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="4dp"
+                        android:background="#000000"
+                        android:visibility="invisible" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tab_outerwear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="24dp">
+                    <TextView
+                        android:id="@+id/tabText_outerwear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Outerwear"
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:textStyle="normal" />
+                    <View
+                        android:id="@+id/underline_outerwear"
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="4dp"
+                        android:background="#000000"
+                        android:visibility="invisible" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tab_accessories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="24dp">
+                    <TextView
+                        android:id="@+id/tabText_accessories"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Accessories"
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:textStyle="normal" />
+                    <View
+                        android:id="@+id/underline_accessories"
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="4dp"
+                        android:background="#000000"
+                        android:visibility="invisible" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tab_footwear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="16dp">
+                    <TextView
+                        android:id="@+id/tabText_footwear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Footwear"
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:textStyle="normal" />
+                    <View
+                        android:id="@+id/underline_footwear"
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="4dp"
+                        android:background="#000000"
+                        android:visibility="invisible" />
+                </LinearLayout>
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/addItemButtonTop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/categoryTabsScroll"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:text="Add Items"
+            android:visibility="invisible"
+            android:textColor="@android:color/white"
+            app:backgroundTint="@android:color/black"
+            app:cornerRadius="24dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/bottomActionBar"
+            android:layout_below="@id/categoryTabsScroll"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            android:scrollbars="vertical"
+            android:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/emptyStateLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/categoryTabsScroll"
+            android:layout_above="@+id/bottomActionBar"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone"
+            android:background="#FFFFFF">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/addItemButtonEmptyState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Items"
+                android:textColor="@android:color/white"
+                app:backgroundTint="@android:color/black"
+                app:cornerRadius="24dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp" />
+        </LinearLayout>
+
+        <include
+            android:id="@+id/bottomActionBar"
+            layout="@layout/bottom_bar_your_clothes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" />
+    </RelativeLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@android:color/white"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/drawer_menu" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/bottomClosetTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Closet"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingBottom="8dp" />
+
+    <!-- RecyclerView for closets -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/bottomClosetRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp" />
+
+    <!-- Oblong Material Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_add_selected_items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add List"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="16dp"
+        app:cornerRadius="24dp"
+        app:backgroundTint="@android:color/black"
+        app:iconPadding="0dp"
+        app:iconGravity="textStart"
+        style="@style/Widget.MaterialComponents.Button"/>
+
+</LinearLayout>

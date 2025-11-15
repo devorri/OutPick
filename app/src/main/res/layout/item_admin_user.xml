@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="8dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="6dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+
+        <!-- User Info -->
+        <TextView
+            android:id="@+id/txtUserId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="User ID"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/txtUsername"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Username"
+            android:textSize="16sp"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/txtGender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gender: Male"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/txtStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status: Offline"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#444444"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/txtSignupDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Signup Date"
+            android:textSize="14sp"
+            android:textColor="#444444" />
+
+        <TextView
+            android:id="@+id/txtLastLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Last Login"
+            android:textSize="14sp"
+            android:textColor="#444444" />
+
+        <TextView
+            android:id="@+id/txtRole"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Role"
+            android:textSize="14sp"
+            android:textColor="#444444" />
+
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
+            <!-- FIXED: Changed layout_width from 10dp to 0dp -->
+            <Button
+                android:id="@+id/btnEditUser"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="#1976D2"
+                android:text="Edit"
+                android:textColor="@android:color/white" />
+
+            <Button
+                android:id="@+id/btnDeleteUser"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Delete"
+                android:backgroundTint="#E53935"
+                android:textColor="@android:color/white"/>
+        </LinearLayout>
+
+        <!-- Create Outfit Button (New) -->
+        <Button
+            android:id="@+id/btnCreateOutfit"
+            android:layout_width="172dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="#388E3C"
+            android:text="Create Outfit"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

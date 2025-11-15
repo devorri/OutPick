@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FFFFFF"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:elevation="4dp">
+
+        <ImageButton
+            android:id="@+id/buttonBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="#000000"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:id="@+id/textTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Outfit Details"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_centerInParent="true" />
+    </RelativeLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <EditText
+                android:id="@+id/tvOutfitName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Outfit Name"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:textColor="@android:color/black"
+                android:textColorHint="#9E9E9E"
+                android:layout_marginBottom="16dp"
+                android:background="@null"
+                android:paddingBottom="8dp"
+                android:singleLine="true" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#CCCCCC">
+
+                <ImageView
+                    android:id="@+id/ivSnapshot"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:minHeight="200dp"
+                    android:maxHeight="500dp"
+                    android:src="@drawable/ic_placeholder"
+                    android:contentDescription="Outfit snapshot"
+                    android:background="@android:color/white" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:id="@+id/eventToggleLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Event/Occasion"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000" />
+
+                    <TextView
+                        android:id="@+id/selectedEventText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="Daily Routine"
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageView
+                        android:id="@+id/btnClearEvent"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_clear"
+                        android:contentDescription="Clear event"
+                        android:visibility="visible"
+                        app:tint="#757575"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageView
+                        android:id="@+id/eventArrow"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        app:tint="#000000"
+                        android:src="@drawable/ic_arrow_down" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/eventSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="Work from Home" style="@style/Chip" />
+                <TextView android:text="Workout" style="@style/Chip" />
+                <TextView android:text="Office" style="@style/Chip" />
+                <TextView android:text="Dating" style="@style/Chip" />
+                <TextView android:text="Daily Routine" style="@style/Chip" />
+                <TextView android:text="Relaxing at Home" style="@style/Chip" />
+                <TextView android:text="Party" style="@style/Chip" />
+                <TextView android:text="Traveling" style="@style/Chip" />
+                <TextView android:text="Beach" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:id="@+id/seasonToggleLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Season"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000" />
+
+                    <TextView
+                        android:id="@+id/selectedSeasonText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="Summer"
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageView
+                        android:id="@+id/btnClearSeason"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_clear"
+                        android:contentDescription="Clear season"
+                        android:visibility="visible"
+                        app:tint="#757575"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageView
+                        android:id="@+id/seasonArrow"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        app:tint="#000000"
+                        android:src="@drawable/ic_arrow_down" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/seasonSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <!-- Only Summer and Rainy seasons remaining per request -->
+                <TextView android:text="Summer" style="@style/Chip" />
+                <TextView android:text="Rainy" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:id="@+id/styleToggleLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Style"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000" />
+
+                    <TextView
+                        android:id="@+id/selectedStyleText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="Casual"
+                        android:textSize="16sp"
+                        android:textColor="#757575"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageView
+                        android:id="@+id/btnClearStyle"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_clear"
+                        android:contentDescription="Clear style"
+                        android:visibility="visible"
+                        app:tint="#757575"
+                        android:layout_marginEnd="8dp" />
+
+                    <ImageView
+                        android:id="@+id/styleArrow"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        app:tint="#000000"
+                        android:src="@drawable/ic_arrow_down" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/styleSubcategoryLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap">
+
+                <TextView android:text="Casual" style="@style/Chip" />
+                <TextView android:text="Sporty" style="@style/Chip" />
+                <TextView android:text="Cozy" style="@style/Chip" />
+                <TextView android:text="Streetstyle" style="@style/Chip" />
+                <TextView android:text="Smart Casual" style="@style/Chip" />
+                <TextView android:text="Smart" style="@style/Chip" />
+                <TextView android:text="Classic" style="@style/Chip" />
+                <TextView android:text="Festive" style="@style/Chip" />
+                <TextView android:text="Lounge" style="@style/Chip" />
+                <TextView android:text="Preppy" style="@style/Chip" />
+                <TextView android:text="Feminine" style="@style/Chip" />
+                <TextView android:text="Minimalist" style="@style/Chip" />
+                <TextView android:text="Athleisure" style="@style/Chip" />
+                <TextView android:text="Elegant" style="@style/Chip" />
+                <TextView android:text="Business Casual" style="@style/Chip" />
+                <TextView android:text="Chic" style="@style/Chip" />
+                <TextView android:text="Romantic" style="@style/Chip" />
+            </com.google.android.flexbox.FlexboxLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        android:elevation="8dp"
+        android:background="#FFFFFF">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUse"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Use"
+            android:textColor="#000000"
+            android:backgroundTint="#F5F5F5"
+            android:layout_marginEnd="8dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#CCCCCC"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Save"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#000000"
+            android:layout_marginStart="8dp"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+</LinearLayout>

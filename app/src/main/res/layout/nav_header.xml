@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    android:orientation="vertical"
+    android:gravity="bottom"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp"
+    android:background="#D3D3D3">
+
+    <!-- 1. Circular Profile Image Container (CardView for Clipping/Masking) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/profileCardContainer"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center_horizontal"
+        app:cardCornerRadius="40dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        android:foreground="@drawable/circle_border"> <!-- Custom border drawable -->
+
+        <!-- The actual ImageView that holds the profile picture -->
+        <ImageView
+            android:id="@+id/nav_header_profile_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/account_circle"
+            android:contentDescription="@string/profile_image" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Username TextView -->
+    <TextView
+        android:id="@+id/nav_header_username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/username_placeholder"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginTop="8dp"
+        android:textColor="#000000" />
+
+</LinearLayout>

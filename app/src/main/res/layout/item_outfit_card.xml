@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp">
+
+    <!-- Main Outfit Image -->
+    <ImageView
+        android:id="@+id/image_outfit"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:background="@drawable/bg_rounded_card"
+        android:padding="4dp" />
+
+    <!-- Gray overlay for selection (initially hidden) -->
+    <View
+        android:id="@+id/selection_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone" />
+
+    <!-- White check icon on top-right when selected -->
+    <ImageView
+        android:id="@+id/check_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="end|top"
+        android:layout_margin="8dp"
+        android:src="@drawable/ic_check_white"
+        android:background="@drawable/circle_gray_background"
+        android:padding="4dp"
+        android:visibility="gone" />
+</FrameLayout>

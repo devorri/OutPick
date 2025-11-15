@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@android:color/black">
+    <!-- Icon representing a shirt/top -->
+    <path
+        android:fillColor="@android:color/black"
+        android:pathData="M21,7l-6,-6l-3,3l-3,-3l-6,6v10.5c0,1.93 1.57,3.5 3.5,3.5h11c1.93,0 3.5,-1.57 3.5,-3.5V7zM11,18H8v-2h3v2zm0,-3H8v-2h3v2zm5,3h-3v-2h3v2zm0,-3h-3v-2h3v2z"/>
+</vector>

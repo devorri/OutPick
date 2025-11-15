@@ -1,0 +1,364 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/filterBottomSheet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:background="@drawable/bg_filter_bottom_sheet"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title Bar -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/titleFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Filter"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <ImageView
+                android:id="@+id/closeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="Close"
+                android:padding="2dp"
+                android:src="@drawable/ic_close" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
+
+        <!-- Season Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:id="@+id/textSeasonLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Season"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:id="@+id/textSelectedSeason"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/blue"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Season Buttons (only Rainy & Summer) -->
+        <GridLayout
+            android:id="@+id/seasonGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:alignmentMode="alignMargins"
+            android:columnOrderPreserved="false"
+            android:useDefaultMargins="true"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLaNiña"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="La Niña"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                app:strokeWidth="2dp"
+                app:strokeColor="@color/light_gray"
+                app:backgroundTint="@android:color/white"
+                android:textColor="@android:color/black" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnElNiño"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="El Niño"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                app:strokeWidth="2dp"
+                app:strokeColor="@color/light_gray"
+                app:backgroundTint="@android:color/white"
+                android:textColor="@android:color/black" />
+        </GridLayout>
+
+        <!-- Occasions Label -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:id="@+id/textOccasionsLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Occasions"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:id="@+id/textSelectedOccasion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/blue"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Occasion Buttons -->
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/occasionGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:flexWrap="wrap"
+            app:justifyContent="flex_start">
+
+            <!-- All Occasion Buttons -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDaily"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Daily"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWork"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Work"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDate"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Date"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFormal"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Formal"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTravel"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Travel"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHome"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Home"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnParty"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Party"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSport"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Sport"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSpecial"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Special"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSchool"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="School"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBeach"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Beach"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEtc"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Etc"
+                android:textAllCaps="false"
+                app:cornerRadius="50dp"
+                android:textColor="@android:color/black"
+                android:textSize="13sp"
+                app:backgroundTint="@android:color/white"
+                app:strokeColor="@color/light_gray"
+                app:strokeWidth="2dp" />
+        </com.google.android.flexbox.FlexboxLayout>
+
+        <!-- Bottom Buttons -->
+        <LinearLayout
+            android:id="@+id/bottomButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="start"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="Clear"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                app:backgroundTint="@color/light_gray"
+                android:textColor="@android:color/black" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Done"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                app:backgroundTint="@color/black"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
