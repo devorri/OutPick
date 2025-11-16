@@ -3,6 +3,7 @@ package com.example.outpick.admin;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -37,6 +38,8 @@ public class UserEditActivity extends AppCompatActivity {
     private String userId;
     private SupabaseService supabaseService;
     private JsonObject currentUser;
+
+    private static final String TAG = "UserEditActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,38 +118,127 @@ public class UserEditActivity extends AppCompatActivity {
     }
 
     private void loadUserData(String userId, ArrayAdapter<CharSequence> genderAdapter, ArrayAdapter<CharSequence> roleAdapter) {
-        Call<List<JsonObject>> call = supabaseService.getUserById(userId);
-        call.enqueue(new Callback<List<JsonObject>>() {
+        Log.d(TAG, "Loading user data for ID: " + userId);
+
+        // First, try the RPC method that should return password
+        JsonObject params = new JsonObject();
+        params.addProperty("user_id", userId);
+
+        Call<List<JsonObject>> rpcCall = supabaseService.getUserByIdWithPasswordRpc(params);
+        rpcCall.enqueue(new Callback<List<JsonObject>>() {
             @Override
             public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     currentUser = response.body().get(0);
-
-                    // Populate UI with user data
-                    if (currentUser.has("username")) {
-                        editUsername.setText(currentUser.get("username").getAsString());
-                    }
-                    if (currentUser.has("password")) {
-                        editCurrentPassword.setText(currentUser.get("password").getAsString());
-                    }
-                    if (currentUser.has("gender")) {
-                        String gender = currentUser.get("gender").getAsString();
-                        spinnerGender.setSelection(genderAdapter.getPosition(gender));
-                    }
-                    if (currentUser.has("role")) {
-                        String role = currentUser.get("role").getAsString();
-                        spinnerRole.setSelection(roleAdapter.getPosition(role));
-                    }
+                    Log.d(TAG, "User data received via RPC: " + currentUser.toString());
+                    debugUserData(currentUser);
+                    populateUserData(genderAdapter, roleAdapter);
                 } else {
+                    Log.e(TAG, "RPC method failed. Code: " + response.code() + ", Message: " + response.message());
+                    // Fallback to regular getUsers method
+                    loadUserWithFallback(userId, genderAdapter, roleAdapter);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                Log.e(TAG, "RPC method error: " + t.getMessage());
+                // Fallback to regular getUsers method
+                loadUserWithFallback(userId, genderAdapter, roleAdapter);
+            }
+        });
+    }
+
+    private void loadUserWithFallback(String userId, ArrayAdapter<CharSequence> genderAdapter, ArrayAdapter<CharSequence> roleAdapter) {
+        // Fallback: Get all users and find the one we need
+        Call<List<JsonObject>> call = supabaseService.getUsers();
+
+        call.enqueue(new Callback<List<JsonObject>>() {
+            @Override
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Find the user with matching ID
+                    for (JsonObject user : response.body()) {
+                        if (user.has("id") && userId.equals(user.get("id").getAsString())) {
+                            currentUser = user;
+                            Log.d(TAG, "User found via getUsers(): " + currentUser.toString());
+                            debugUserData(currentUser);
+                            populateUserData(genderAdapter, roleAdapter);
+                            return;
+                        }
+                    }
+                    Toast.makeText(UserEditActivity.this, "User not found", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e(TAG, "Fallback also failed. Code: " + response.code());
                     Toast.makeText(UserEditActivity.this, "Failed to load user data", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                Log.e(TAG, "Fallback error: " + t.getMessage());
                 Toast.makeText(UserEditActivity.this, "Error loading user: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void debugUserData(JsonObject user) {
+        Log.d(TAG, "=== DEBUG USER DATA ===");
+        Log.d(TAG, "Total fields: " + user.keySet().size());
+        for (String key : user.keySet()) {
+            if (user.get(key).isJsonNull()) {
+                Log.d(TAG, key + ": NULL");
+            } else {
+                try {
+                    Log.d(TAG, key + ": " + user.get(key).getAsString());
+                } catch (Exception e) {
+                    Log.d(TAG, key + ": [Complex type - not a string]");
+                }
+            }
+        }
+        Log.d(TAG, "=== END DEBUG ===");
+    }
+
+    private void populateUserData(ArrayAdapter<CharSequence> genderAdapter, ArrayAdapter<CharSequence> roleAdapter) {
+        // Populate UI with user data
+        if (currentUser.has("username") && !currentUser.get("username").isJsonNull()) {
+            editUsername.setText(currentUser.get("username").getAsString());
+        } else {
+            editUsername.setText("");
+        }
+
+        // Check if password field exists and is not null
+        if (currentUser.has("password") && !currentUser.get("password").isJsonNull()) {
+            String password = currentUser.get("password").getAsString();
+            editCurrentPassword.setText(password);
+            Log.d(TAG, "Password loaded successfully");
+        } else {
+            editCurrentPassword.setText("");
+            Log.d(TAG, "Password field not available in response");
+            // This is normal - passwords are often hidden for security
+        }
+
+        // Set gender
+        if (currentUser.has("gender") && !currentUser.get("gender").isJsonNull()) {
+            String gender = currentUser.get("gender").getAsString();
+            int position = genderAdapter.getPosition(gender);
+            if (position >= 0) {
+                spinnerGender.setSelection(position);
+            } else {
+                spinnerGender.setSelection(0); // Default to first option
+            }
+        }
+
+        // Set role
+        if (currentUser.has("role") && !currentUser.get("role").isJsonNull()) {
+            String role = currentUser.get("role").getAsString();
+            int position = roleAdapter.getPosition(role);
+            if (position >= 0) {
+                spinnerRole.setSelection(position);
+            } else {
+                spinnerRole.setSelection(roleAdapter.getPosition("User")); // Default to User
+            }
+        }
     }
 
     private void saveUserChanges() {
@@ -168,8 +260,15 @@ public class UserEditActivity extends AppCompatActivity {
 
         // Only update password if a new one was provided
         if (!newPassword.isEmpty()) {
+            if (newPassword.length() < 6) {
+                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+                return;
+            }
             updates.addProperty("password", newPassword);
+            Log.d(TAG, "Password will be updated");
         }
+
+        Log.d(TAG, "Saving user updates: " + updates.toString());
 
         // Update user in Supabase
         Call<JsonObject> call = supabaseService.updateUserById(userId, updates);
@@ -177,17 +276,27 @@ public class UserEditActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
+                    Log.d(TAG, "User updated successfully");
                     Toast.makeText(UserEditActivity.this, "User updated successfully!", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK);   // notify previous activity to refresh RecyclerView
+                    setResult(RESULT_OK);
                     finish();
                 } else {
-                    Toast.makeText(UserEditActivity.this, "Failed to update user: " + response.message(), Toast.LENGTH_SHORT).show();
+                    String errorMessage = "Failed to update user";
+                    try {
+                        if (response.errorBody() != null) {
+                            errorMessage = "Error: " + response.code() + " - " + response.errorBody().string();
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Error: " + response.code();
+                    }
+                    Toast.makeText(UserEditActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                Toast.makeText(UserEditActivity.this, "Error updating user: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Error updating user: " + t.getMessage());
+                Toast.makeText(UserEditActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }

@@ -9,9 +9,14 @@ import java.util.List;
 public interface SupabaseService {
 
     // ================= USERS =================
+
+    @Headers("Content-Type: application/json")
+    @POST("rpc/get_user_by_id_with_password")
+    Call<List<JsonObject>> getUserByIdWithPasswordRpc(@Body JsonObject params);
     @GET("users")
     Call<List<JsonObject>> getUsers();
-
+    @GET("users")
+    Call<List<JsonObject>> getUserByIdWithPassword(@Query("id") String userId, @Query("select") String select);
     @GET("users")
     Call<List<JsonObject>> getUserById(@Query("id") String userId);
 
@@ -21,8 +26,15 @@ public interface SupabaseService {
     @GET("users")
     Call<List<JsonObject>> getUserByEmail(@Query("email") String email);
 
+    // NEW: Method to get user with specific columns including password
+
+
+    @Headers({
+            "Content-Type: application/json",
+            "Prefer: return=representation"
+    })
     @POST("users")
-    Call<JsonObject> insertUser(@Body JsonObject user);
+    Call<JsonObject> insertUser(@Body JsonObject user); // KEEP AS JsonObject
 
     @PATCH("users")
     Call<JsonObject> updateUser(@Query("username") String username, @Body JsonObject updates);
@@ -32,6 +44,11 @@ public interface SupabaseService {
 
     @DELETE("users")
     Call<Void> deleteUser(@Query("id") String userId);
+
+    // RPC function for getting user with password (optional)
+    @Headers("Content-Type: application/json")
+    @POST("rpc/get_user_with_password")
+    Call<JsonObject> getUserWithPassword(@Body JsonObject params);
 
     // ================= OUTFITS =================
     @GET("outfits")
@@ -46,8 +63,12 @@ public interface SupabaseService {
     @GET("outfits")
     Call<List<JsonObject>> getOutfitsByOccasion(@Query("occasion") String occasion);
 
+    @Headers({
+            "Content-Type: application/json",
+            "Prefer: return=representation"
+    })
     @POST("outfits")
-    Call<JsonObject> insertOutfit(@Body JsonObject outfit);
+    Call<JsonObject> insertOutfit(@Body JsonObject outfit); // KEEP AS JsonObject
 
     @PATCH("outfits")
     Call<JsonObject> updateOutfit(@Query("id") String outfitId, @Body JsonObject updates);
@@ -62,8 +83,12 @@ public interface SupabaseService {
     @GET("user_favorites")
     Call<List<JsonObject>> checkFavorite(@Query("user_id") String userId, @Query("outfit_id") String outfitId);
 
+    @Headers({
+            "Content-Type: application/json",
+            "Prefer: return=representation"
+    })
     @POST("user_favorites")
-    Call<JsonObject> addFavorite(@Body JsonObject favorite);
+    Call<JsonObject> addFavorite(@Body JsonObject favorite); // KEEP AS JsonObject
 
     @DELETE("user_favorites")
     Call<Void> removeFavorite(@Query("user_id") String userId, @Query("outfit_id") String outfitId);
@@ -78,8 +103,12 @@ public interface SupabaseService {
     @GET("clothing")
     Call<List<JsonObject>> getClothingByCategory(@Query("category") String category);
 
+    @Headers({
+            "Content-Type: application/json",
+            "Prefer: return=representation"
+    })
     @POST("clothing")
-    Call<JsonObject> insertClothing(@Body JsonObject clothing);
+    Call<JsonObject> insertClothing(@Body JsonObject clothing); // KEEP AS JsonObject
 
     @PATCH("clothing")
     Call<JsonObject> updateClothing(@Query("id") String clothingId, @Body JsonObject updates);
@@ -91,8 +120,12 @@ public interface SupabaseService {
     @GET("closets")
     Call<List<JsonObject>> getClosets();
 
+    @Headers({
+            "Content-Type: application/json",
+            "Prefer: return=representation"
+    })
     @POST("closets")
-    Call<JsonObject> insertCloset(@Body JsonObject closet);
+    Call<JsonObject> insertCloset(@Body JsonObject closet); // KEEP AS JsonObject
 
     @DELETE("closets")
     Call<Void> deleteCloset(@Query("id") String closetId);
@@ -104,8 +137,12 @@ public interface SupabaseService {
     @GET("outfit_history")
     Call<List<JsonObject>> getOutfitHistoryByUser(@Query("user_id") String userId);
 
+    @Headers({
+            "Content-Type: application/json",
+            "Prefer: return=representation"
+    })
     @POST("outfit_history")
-    Call<JsonObject> insertOutfitHistory(@Body JsonObject history);
+    Call<JsonObject> insertOutfitHistory(@Body JsonObject history); // KEEP AS JsonObject
 
     @PATCH("outfit_history")
     Call<JsonObject> updateOutfitHistory(@Query("id") String historyId, @Body JsonObject updates);
@@ -132,4 +169,13 @@ public interface SupabaseService {
             @Query("season") String season,
             @Query("occasion") String occasion
     );
+
+    // ================= CUSTOM RPC FUNCTIONS =================
+    @Headers("Content-Type: application/json")
+    @POST("rpc/check_username_exists")
+    Call<JsonObject> checkUsernameExists(@Body JsonObject params);
+
+    @Headers("Content-Type: application/json")
+    @POST("rpc/check_email_exists")
+    Call<JsonObject> checkEmailExists(@Body JsonObject params);
 }

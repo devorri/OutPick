@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.widget.*;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,6 +37,8 @@ public class SignupActivity extends AppCompatActivity {
 
     private SupabaseService supabaseService;
 
+    private static final String TAG = "SignupActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +47,14 @@ public class SignupActivity extends AppCompatActivity {
         // Initialize Supabase service
         supabaseService = SupabaseClient.getService();
 
+        initializeViews();
+        setupPasswordToggles();
+        setupGenderSelection();
+        setupSignUpButton();
+        setupLoginLink();
+    }
+
+    private void initializeViews() {
         editTextUsername = findViewById(R.id.editTextUsername);
         editTextPassword = findViewById(R.id.editTextPassword);
         editTextConfirmPassword = findViewById(R.id.editTextConfirmPassword);
@@ -53,7 +64,9 @@ public class SignupActivity extends AppCompatActivity {
         buttonFemale = findViewById(R.id.buttonFemale);
         buttonSignUp = findViewById(R.id.buttonSignUp);
         textLoginLink = findViewById(R.id.textLoginLink);
+    }
 
+    private void setupPasswordToggles() {
         // Toggle password visibility
         togglePassword.setOnClickListener(v -> {
             isPasswordVisible = !isPasswordVisible;
@@ -72,7 +85,9 @@ public class SignupActivity extends AppCompatActivity {
             toggleConfirmPassword.setImageResource(isConfirmPasswordVisible ? R.drawable.ic_eye_off : R.drawable.ic_eye);
             editTextConfirmPassword.setSelection(editTextConfirmPassword.length());
         });
+    }
 
+    private void setupGenderSelection() {
         // Gender selection
         buttonMale.setOnClickListener(v -> {
             selectedGender = "Male";
@@ -85,32 +100,25 @@ public class SignupActivity extends AppCompatActivity {
             buttonFemale.setBackgroundResource(R.drawable.bg_gender_selected_female);
             buttonMale.setBackgroundResource(R.drawable.bg_gender_unselected);
         });
+    }
 
+    private void setupSignUpButton() {
         // Sign-up logic
         buttonSignUp.setOnClickListener(v -> {
             String username = editTextUsername.getText().toString().trim();
             String password = editTextPassword.getText().toString().trim();
             String confirmPassword = editTextConfirmPassword.getText().toString().trim();
 
-            if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (!password.equals(confirmPassword)) {
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (selectedGender == null) {
-                Toast.makeText(this, "Please select a gender", Toast.LENGTH_SHORT).show();
+            if (!validateInputs(username, password, confirmPassword)) {
                 return;
             }
 
             // Check if username exists in Supabase
             checkUsernameAndSignup(username, password);
         });
+    }
 
+    private void setupLoginLink() {
         // Go to Login screen
         textLoginLink.setOnClickListener(v -> {
             startActivity(new Intent(SignupActivity.this, LoginActivity.class));
@@ -118,7 +126,42 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
+    private boolean validateInputs(String username, String password, String confirmPassword) {
+        if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (username.length() < 3) {
+            Toast.makeText(this, "Username must be at least 3 characters", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (password.length() < 6) {
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (selectedGender == null) {
+            Toast.makeText(this, "Please select a gender", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
+    }
+
     private void checkUsernameAndSignup(String username, String password) {
+        Log.d(TAG, "Checking username: " + username);
+
+        // Show loading state
+        buttonSignUp.setEnabled(false);
+        buttonSignUp.setText("Checking...");
+
         // Check if username already exists in Supabase
         Call<List<JsonObject>> call = supabaseService.getUserByUsername(username);
         call.enqueue(new Callback<List<JsonObject>>() {
@@ -127,58 +170,112 @@ public class SignupActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     if (!response.body().isEmpty()) {
                         // Username already exists
+                        Log.d(TAG, "Username already taken");
+                        buttonSignUp.setEnabled(true);
+                        buttonSignUp.setText("Sign Up");
                         Toast.makeText(SignupActivity.this, "Username already taken", Toast.LENGTH_SHORT).show();
                     } else {
                         // Username is available, proceed with signup
+                        Log.d(TAG, "Username available, creating user");
                         createUserInSupabase(username, password);
                     }
                 } else {
                     // If there's an error, still try to create the user
+                    Log.w(TAG, "Username check failed, but trying to create user anyway. Response code: " + response.code());
                     createUserInSupabase(username, password);
                 }
             }
 
             @Override
             public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                Log.e(TAG, "Network error during username check: " + t.getMessage());
+                buttonSignUp.setEnabled(true);
+                buttonSignUp.setText("Sign Up");
                 Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void createUserInSupabase(String username, String password) {
-        // Generate signup date
-        String signupDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        Log.d(TAG, "Creating user: " + username);
+        buttonSignUp.setText("Creating Account...");
 
-        // Create user object for Supabase
-        JsonObject user = new JsonObject();
-        user.addProperty("username", username);
-        user.addProperty("password", password);
-        user.addProperty("gender", selectedGender);
-        user.addProperty("role", "User");
-        user.addProperty("created_at", signupDate);
-        user.addProperty("last_login", currentTime);
-        user.addProperty("status", "Active");
-        user.addProperty("is_active", true);
+        try {
+            // Generate dates in the correct format for your schema
+            String currentDateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-        // Insert user into Supabase
-        Call<JsonObject> call = supabaseService.insertUser(user);
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(SignupActivity.this, "Account created! Please log in.", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(SignupActivity.this, LoginActivity.class));
-                    finish();
-                } else {
-                    Toast.makeText(SignupActivity.this, "Failed to create account", Toast.LENGTH_SHORT).show();
+            // Create user object that matches your EXACT schema
+            JsonObject user = new JsonObject();
+            user.addProperty("username", username);
+            user.addProperty("password", password);
+            user.addProperty("gender", selectedGender);
+            user.addProperty("role", "User");
+            user.addProperty("status", "Active");
+            user.addProperty("display_name", username); // Using username as display name
+            user.addProperty("signup_date", currentDateTime); // Use signup_date instead of created_at
+            user.addProperty("last_login", currentDateTime);
+            user.addProperty("last_logout", "Never");
+            user.addProperty("suspended", false);
+            // Note: Do NOT include created_at (it's auto-generated)
+            // Note: Do NOT include is_active (column doesn't exist)
+            // Note: profile_image_uri is optional and will be null by default
+
+            Log.d(TAG, "User object created: " + user.toString());
+
+            // FIX: Change this to Call<JsonObject> to match the SupabaseService
+            Call<JsonObject> call = supabaseService.insertUser(user);
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (response.isSuccessful()) {
+                        Log.d(TAG, "User created successfully");
+                        Toast.makeText(SignupActivity.this, "Account created! Please log in.", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                        finish();
+                    } else {
+                        // Enhanced error handling
+                        String errorMessage = "Failed to create account: ";
+                        if (response.code() == 401) {
+                            errorMessage += "Unauthorized - Check your Supabase API key";
+                        } else if (response.code() == 403) {
+                            errorMessage += "Forbidden - Check RLS policies";
+                        } else if (response.code() == 404) {
+                            errorMessage += "Endpoint not found";
+                        } else {
+                            errorMessage += "HTTP " + response.code();
+                        }
+
+                        try {
+                            if (response.errorBody() != null) {
+                                String errorBody = response.errorBody().string();
+                                errorMessage += " - " + errorBody;
+                                Log.e(TAG, "Error response: " + errorBody);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error reading error body", e);
+                        }
+
+                        Log.e(TAG, errorMessage);
+                        Toast.makeText(SignupActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        buttonSignUp.setEnabled(true);
+                        buttonSignUp.setText("Sign Up");
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    Log.e(TAG, "Network error during signup: " + t.getMessage());
+                    Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    buttonSignUp.setEnabled(true);
+                    buttonSignUp.setText("Sign Up");
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Exception during user creation: " + e.getMessage());
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            buttonSignUp.setEnabled(true);
+            buttonSignUp.setText("Sign Up");
+        }
     }
 }
