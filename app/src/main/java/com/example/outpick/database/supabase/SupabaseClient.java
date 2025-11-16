@@ -9,9 +9,11 @@ import java.util.concurrent.TimeUnit;
 
 public class SupabaseClient {
     private static final String BASE_URL = "https://xaekxlyllgjxneyhurfp.supabase.co/rest/v1/";
-    private static final String API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhZWt4bHlsbGdqeG5leWh1cmZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNzcxMDksImV4cCI6MjA3ODc1MzEwOX0.x2lg5DBnYJ_vWOjfNi3c7ODyrBpOgIPia3oZ5htWsNM"; // Your anon/public key
+    private static final String STORAGE_BASE_URL = "https://xaekxlyllgjxneyhurfp.supabase.co/"; // Remove /rest/v1/ for storage
+    private static final String API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhZWt4bHlsbGdqeG5leWh1cmZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNzcxMDksImV4cCI6MjA3ODc1MzEwOX0.x2lg5DBnYJ_vWOjfNi3c7ODyrBpOgIPia3oZ5htWsNM";
 
     private static Retrofit retrofit = null;
+    private static Retrofit storageRetrofit = null;
 
     public static SupabaseService getService() {
         if (retrofit == null) {
@@ -54,5 +56,28 @@ public class SupabaseClient {
                     .build();
         }
         return retrofit.create(SupabaseService.class);
+    }
+
+    // New method for storage operations
+    public static SupabaseService getStorageService() {
+        if (storageRetrofit == null) {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(chain -> {
+                        Request original = chain.request();
+                        Request newRequest = original.newBuilder()
+                                .header("Authorization", "Bearer " + API_KEY)
+                                .header("apikey", API_KEY)
+                                .build();
+                        return chain.proceed(newRequest);
+                    })
+                    .build();
+
+            storageRetrofit = new Retrofit.Builder()
+                    .baseUrl(STORAGE_BASE_URL) // Use storage base URL
+                    .client(client)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return storageRetrofit.create(SupabaseService.class);
     }
 }

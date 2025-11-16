@@ -2,6 +2,7 @@ package com.example.outpick.common.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,21 +49,31 @@ public class ClothingItemAdapter extends RecyclerView.Adapter<ClothingItemAdapte
     public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
         ClothingItem currentItem = mItems.get(position);
 
-        // Load image using Glide
+        // ✅ IMPROVED: Enhanced image loading with better cloud URL handling
+        String imagePath = currentItem.getImagePath();
+
         if (currentItem.getMockDrawableId() != 0) {
+            // Use mock drawable for testing
             Glide.with(mContext)
                     .load(currentItem.getMockDrawableId())
                     .centerCrop()
                     .into(holder.itemImage);
-        } else if (currentItem.getImagePath() != null) {
+        } else if (imagePath != null && !imagePath.isEmpty()) {
+            // ✅ Use Glide for both cloud URLs and local files
             Glide.with(mContext)
-                    .load(currentItem.getImagePath())
+                    .load(imagePath)
                     .centerCrop()
-                    .placeholder(android.R.drawable.ic_menu_gallery)
-                    .error(android.R.drawable.ic_menu_gallery)
+                    .placeholder(R.drawable.ic_placeholder) // Use your custom placeholder
+                    .error(R.drawable.ic_error) // Use your custom error image
                     .into(holder.itemImage);
+
+            // ✅ OPTIONAL: Log cloud URL detection for debugging
+            if (imagePath.startsWith("http")) {
+                Log.d("ClothingItemAdapter", "Loading cloud image: " + imagePath);
+            }
         } else {
-            holder.itemImage.setImageResource(android.R.drawable.ic_menu_gallery);
+            // Fallback to default image
+            holder.itemImage.setImageResource(R.drawable.ic_placeholder);
         }
 
         // Set display name
@@ -88,6 +99,11 @@ public class ClothingItemAdapter extends RecyclerView.Adapter<ClothingItemAdapte
             final int clickedPosition = holder.getAdapterPosition();
             if (clickedPosition != RecyclerView.NO_POSITION) {
                 ClothingItem clickedItem = mItems.get(clickedPosition);
+
+                // ✅ OPTIONAL: Log selection for debugging
+                Log.d("ClothingItemAdapter", "Item selected: " + clickedItem.getName() +
+                        " | Image: " + clickedItem.getImagePath());
+
                 mListener.onItemClick(clickedItem);
 
                 int previousSelectedPosition = selectedPosition;
@@ -127,6 +143,16 @@ public class ClothingItemAdapter extends RecyclerView.Adapter<ClothingItemAdapte
     public void updateList(List<ClothingItem> newList) {
         mItems.clear();
         mItems.addAll(newList);
+        selectedPosition = RecyclerView.NO_POSITION; // Reset selection
         notifyDataSetChanged();
+    }
+
+    // ✅ ADDED: Helper method to clear selection
+    public void clearSelection() {
+        int previousPosition = selectedPosition;
+        selectedPosition = RecyclerView.NO_POSITION;
+        if (previousPosition != RecyclerView.NO_POSITION) {
+            notifyItemChanged(previousPosition);
+        }
     }
 }

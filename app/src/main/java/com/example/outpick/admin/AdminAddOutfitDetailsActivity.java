@@ -18,11 +18,10 @@ import com.example.outpick.R;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
 import com.example.outpick.dialogs.StyleBottomSheetDialog;
+import com.example.outpick.utils.ImageUploader;
 import com.google.android.material.button.MaterialButton;
 import com.google.gson.JsonObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -38,8 +37,8 @@ public class AdminAddOutfitDetailsActivity extends AppCompatActivity {
     private TextView allTextView;
     private Button maleButton, femaleButton;
 
-    private byte[] snapshot;
-    private Uri snapshotUri;
+    private String cloudImageUrl; // Cloud storage URL
+    private Uri localSnapshotUri; // Local URI as backup
 
     private String selectedGender = "";
 
@@ -89,10 +88,12 @@ public class AdminAddOutfitDetailsActivity extends AppCompatActivity {
         btnElNiño = findViewById(R.id.btnElNiño);
         btnLaNiña = findViewById(R.id.btnLaNiña);
 
-        // Retrieve image if passed
-        snapshot = getIntent().getByteArrayExtra("snapshot");
-        String uriString = getIntent().getStringExtra("snapshotImageUri");
-        if (uriString != null) snapshotUri = Uri.parse(uriString);
+        // Retrieve image URLs - prefer cloud URL, fallback to local URI
+        cloudImageUrl = getIntent().getStringExtra("snapshotImageUrl");
+        String localUriString = getIntent().getStringExtra("snapshotImageUri");
+        if (localUriString != null) {
+            localSnapshotUri = Uri.parse(localUriString);
+        }
 
         // Back button
         backButton.setOnClickListener(v -> finish());
@@ -271,34 +272,71 @@ public class AdminAddOutfitDetailsActivity extends AppCompatActivity {
             return;
         }
 
+        // If we don't have a cloud URL but have a local URI, upload it first
+        if (cloudImageUrl == null && localSnapshotUri != null) {
+            uploadLocalImageThenSave(outfitName, description);
+        } else {
+            // We already have a cloud URL or no image at all
+            saveOutfitToDatabase(outfitName, description);
+        }
+    }
+
+    /** Upload local image to cloud storage, then save outfit */
+    private void uploadLocalImageThenSave(String outfitName, String description) {
+        saveButton.setEnabled(false);
+        saveButton.setText("Uploading Image...");
+
+        ImageUploader uploader = new ImageUploader(this);
+        String fileName = "outfit_" + System.currentTimeMillis() + ".jpg";
+
+        uploader.uploadImage(localSnapshotUri, "outfits", fileName, new ImageUploader.UploadCallback() {
+            @Override
+            public void onSuccess(String imageUrl) {
+                cloudImageUrl = imageUrl; // Store the cloud URL
+                saveOutfitToDatabase(outfitName, description);
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(AdminAddOutfitDetailsActivity.this,
+                            "Failed to upload image: " + error, Toast.LENGTH_LONG).show();
+                    saveButton.setEnabled(true);
+                    saveButton.setText("Save Outfit");
+
+                    // Fallback: try to save with local URI
+                    saveOutfitToDatabase(outfitName, description);
+                });
+            }
+        });
+    }
+
+    /** Save outfit data to Supabase database */
+    private void saveOutfitToDatabase(String outfitName, String description) {
+        runOnUiThread(() -> {
+            saveButton.setText("Saving Outfit...");
+        });
+
         String styles = TextUtils.join(", ", selectedStyles);
         String events = TextUtils.join(", ", selectedEvents);
         String seasons = TextUtils.join(", ", selectedSeasons);
 
-        // Save snapshot image locally and get URI
-        String imageUriString = null;
-        if (snapshotUri != null) {
-            imageUriString = snapshotUri.toString();
-        } else if (snapshot != null) {
-            try {
-                File imageFile = new File(getFilesDir(), "outfit_" + System.currentTimeMillis() + ".jpg");
-                FileOutputStream fos = new FileOutputStream(imageFile);
-                fos.write(snapshot);
-                fos.close();
-                imageUriString = Uri.fromFile(imageFile).toString();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        // Use cloud URL if available, otherwise fallback to local URI
+        String finalImageUrl = cloudImageUrl;
+        if (finalImageUrl == null && localSnapshotUri != null) {
+            finalImageUrl = localSnapshotUri.toString();
         }
 
-        if (imageUriString == null && snapshot == null) {
-            Toast.makeText(this, "No outfit image found!", Toast.LENGTH_SHORT).show();
+        if (finalImageUrl == null) {
+            Toast.makeText(this, "No outfit image available!", Toast.LENGTH_SHORT).show();
+            saveButton.setEnabled(true);
+            saveButton.setText("Save Outfit");
             return;
         }
 
         // Create JsonObject for Supabase
         JsonObject outfitJson = new JsonObject();
-        outfitJson.addProperty("image_uri", imageUriString);
+        outfitJson.addProperty("image_uri", finalImageUrl); // This is now a cloud URL or local URI
         outfitJson.addProperty("name", outfitName);
         outfitJson.addProperty("description", description);
         outfitJson.addProperty("gender", selectedGender);
@@ -307,28 +345,39 @@ public class AdminAddOutfitDetailsActivity extends AppCompatActivity {
         outfitJson.addProperty("styles", styles);
         outfitJson.addProperty("created_at", new java.util.Date().toString());
 
-        // Save to Supabase using the correct method name
+        // Save to Supabase
         Call<JsonObject> call = supabaseService.insertOutfit(outfitJson);
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(AdminAddOutfitDetailsActivity.this, "Outfit saved successfully!", Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(AdminAddOutfitDetailsActivity.this,
+                                "Outfit saved successfully!", Toast.LENGTH_SHORT).show();
 
-                    // Return to OutfitSuggestionActivity
-                    Intent intent = new Intent(AdminAddOutfitDetailsActivity.this, OutfitSuggestionActivity.class);
-                    intent.putExtra("username", getIntent().getStringExtra("username"));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Toast.makeText(AdminAddOutfitDetailsActivity.this, "Failed to save outfit: " + response.message(), Toast.LENGTH_SHORT).show();
-                }
+                        // Return to OutfitSuggestionActivity
+                        Intent intent = new Intent(AdminAddOutfitDetailsActivity.this, OutfitSuggestionActivity.class);
+                        intent.putExtra("username", getIntent().getStringExtra("username"));
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Toast.makeText(AdminAddOutfitDetailsActivity.this,
+                                "Failed to save outfit: " + response.message(), Toast.LENGTH_SHORT).show();
+                        saveButton.setEnabled(true);
+                        saveButton.setText("Save Outfit");
+                    }
+                });
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                Toast.makeText(AdminAddOutfitDetailsActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> {
+                    Toast.makeText(AdminAddOutfitDetailsActivity.this,
+                            "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    saveButton.setEnabled(true);
+                    saveButton.setText("Save Outfit");
+                });
             }
         });
     }

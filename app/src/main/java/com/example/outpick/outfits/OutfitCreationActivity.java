@@ -20,6 +20,7 @@ import com.example.outpick.database.models.ClothingItem;
 import com.example.outpick.closet.ItemsAddingActivity;
 import com.example.outpick.R;
 import com.example.outpick.common.SpecifyDetailsActivity;
+import com.example.outpick.utils.ImageUploader;
 import com.google.android.material.button.MaterialButton;
 
 import java.io.ByteArrayOutputStream;
@@ -42,11 +43,15 @@ public class OutfitCreationActivity extends AppCompatActivity {
 
     private static final int REQUEST_ADD_MORE_ITEMS = 101;
     private String username = "Guest";
+    private ImageUploader imageUploader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_outfit_creation);
+
+        // Initialize ImageUploader for cloud functionality
+        imageUploader = new ImageUploader(this);
 
         String passedUsername = getIntent().getStringExtra("username");
         if (passedUsername != null && !passedUsername.trim().isEmpty()) {
@@ -132,11 +137,17 @@ public class OutfitCreationActivity extends AppCompatActivity {
             ImageView imageView = itemContainer.findViewById(R.id.outfitItemImage);
             View border = itemContainer.findViewById(R.id.itemBorder);
 
-            Glide.with(this)
-                    .load(new File(imagePath))
-                    .placeholder(R.drawable.ic_placeholder)
-                    .error(R.drawable.ic_error)
-                    .into(imageView);
+            // ✅ FIXED: Use Glide to handle both cloud URLs and local files
+            if (imagePath != null && !imagePath.isEmpty()) {
+                // Glide automatically handles both HTTPS URLs and local file paths
+                Glide.with(this)
+                        .load(imagePath) // Can be cloud URL or local file path
+                        .placeholder(R.drawable.ic_placeholder)
+                        .error(R.drawable.ic_error)
+                        .into(imageView);
+            } else {
+                imageView.setImageResource(R.drawable.ic_placeholder);
+            }
 
             int size = 400;
             int centerX = (workspace.getWidth() - size) / 2;

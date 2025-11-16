@@ -24,6 +24,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.bumptech.glide.Glide;
 import com.example.outpick.database.models.ClothingItem;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
@@ -294,11 +295,15 @@ public class TryOnActivity extends AppCompatActivity {
             params.setMarginEnd(margin);
             imageView.setLayoutParams(params);
 
-            imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
-            // Load image from Supabase storage URL
-            if (item.getImagePath() != null) {
-                imageView.setImageURI(Uri.parse(item.getImagePath()));
+            // ✅ FIXED: Use Glide to load cloud images from Supabase URLs
+            if (item.getImagePath() != null && !item.getImagePath().isEmpty()) {
+                Glide.with(this)
+                        .load(item.getImagePath()) // Load from cloud URL (HTTPS)
+                        .placeholder(R.drawable.ic_placeholder)
+                        .error(R.drawable.ic_error)
+                        .into(imageView);
             } else {
                 imageView.setImageResource(R.drawable.ic_placeholder);
             }
@@ -344,8 +349,13 @@ public class TryOnActivity extends AppCompatActivity {
     private void addClothingItemToMannequin(ClothingItem item) {
         ResizableImageView clothingView = new ResizableImageView(this);
 
-        if (item.getImagePath() != null) {
-            clothingView.setImageURI(Uri.parse(item.getImagePath()));
+        // ✅ FIXED: Use Glide to load cloud images in ResizableImageView
+        if (item.getImagePath() != null && !item.getImagePath().isEmpty()) {
+            Glide.with(this)
+                    .load(item.getImagePath()) // Load from cloud URL (HTTPS)
+                    .placeholder(R.drawable.ic_placeholder)
+                    .error(R.drawable.ic_error)
+                    .into(clothingView);
         } else {
             clothingView.setImageResource(R.drawable.ic_placeholder);
         }

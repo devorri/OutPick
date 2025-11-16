@@ -31,6 +31,18 @@
             android:textStyle="bold"
             android:textColor="#000" />
 
+        <!-- Empty state message -->
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No outfit combinations found"
+            android:textSize="16sp"
+            android:padding="32dp"
+            android:gravity="center"
+            android:textColor="#666"
+            android:visibility="gone" />
+
         <!-- RecyclerView for outfit cards -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerOutfits"

@@ -17,6 +17,7 @@ import com.example.outpick.MainActivity;
 import com.example.outpick.R;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
+import com.example.outpick.utils.ImageUploader;
 import com.google.gson.JsonObject;
 
 import retrofit2.Call;
@@ -33,7 +34,7 @@ public class LoginProfileActivity extends AppCompatActivity {
     private Button continueButton, skipButton;
 
     private Uri selectedImageUri;
-    private String userId; // ✅ CHANGED: Store user ID instead of username
+    private String userId;
     private String currentUsername;
     private SupabaseService supabaseService;
 
@@ -42,7 +43,6 @@ public class LoginProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_profile);
 
-        // Initialize Supabase service
         supabaseService = SupabaseClient.getService();
 
         profileImage = findViewById(R.id.profileImage);
@@ -50,9 +50,8 @@ public class LoginProfileActivity extends AppCompatActivity {
         continueButton = findViewById(R.id.continueButton);
         skipButton = findViewById(R.id.skipButton);
 
-        // Load user data from SharedPreferences
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        userId = prefs.getString("user_id", null); // ✅ CHANGED: Get user ID
+        userId = prefs.getString("user_id", null);
         currentUsername = prefs.getString("username", "");
 
         if (userId == null) {
@@ -61,12 +60,10 @@ public class LoginProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Pre-fill the username field
         if (!currentUsername.isEmpty()) {
             usernameEdit.setText(currentUsername);
         }
 
-        // Set up listeners
         profileImage.setOnClickListener(v -> openGallery());
         continueButton.setOnClickListener(v -> saveProfileAndContinue());
         skipButton.setOnClickListener(v -> skipSetupAndContinue());
@@ -97,7 +94,6 @@ public class LoginProfileActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                // Set image to fit XY inside circular ImageView
                 profileImage.setImageURI(selectedImageUri);
                 profileImage.setScaleType(ImageView.ScaleType.FIT_XY);
             }
@@ -112,52 +108,87 @@ public class LoginProfileActivity extends AppCompatActivity {
             return;
         }
 
+        continueButton.setEnabled(false);
+        continueButton.setText("Saving...");
+
+        if (selectedImageUri != null) {
+            uploadProfileImageAndSave(newDisplayName);
+        } else {
+            saveProfileToDatabase(newDisplayName, null);
+        }
+    }
+
+    private void uploadProfileImageAndSave(String newDisplayName) {
+        continueButton.setText("Uploading Image...");
+
+        ImageUploader uploader = new ImageUploader(this);
+        String fileName = "profile_" + userId + "_" + System.currentTimeMillis() + ".jpg";
+
+        uploader.uploadImage(selectedImageUri, "profiles", fileName, new ImageUploader.UploadCallback() {
+            @Override
+            public void onSuccess(String cloudImageUrl) {
+                saveProfileToDatabase(newDisplayName, cloudImageUrl);
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    continueButton.setEnabled(true);
+                    continueButton.setText("Continue");
+                    Toast.makeText(LoginProfileActivity.this,
+                            "Failed to upload image", Toast.LENGTH_SHORT).show();
+                    saveProfileToDatabase(newDisplayName, null);
+                });
+            }
+        });
+    }
+
+    private void saveProfileToDatabase(String newDisplayName, String imageUrl) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        String imageUriToSave = selectedImageUri != null ? selectedImageUri.toString() : null;
-
-        // Save locally to SharedPreferences
         editor.putString("username", newDisplayName);
-        if (imageUriToSave != null) {
-            editor.putString("profile_image_uri", imageUriToSave);
+        if (imageUrl != null) {
+            editor.putString("profile_image_uri", imageUrl);
         }
 
-        // ✅ FIXED: Use USER ID instead of username for profile setup flag
         editor.putBoolean("profile_setup_done_" + userId, true);
         editor.apply();
 
-        // Save to Supabase
-        updateProfileInSupabase(newDisplayName, imageUriToSave);
+        updateProfileInSupabase(newDisplayName, imageUrl);
     }
 
-    private void updateProfileInSupabase(String newDisplayName, String imageUri) {
+    private void updateProfileInSupabase(String newDisplayName, String imageUrl) {
         JsonObject updates = new JsonObject();
         updates.addProperty("username", newDisplayName);
-        if (imageUri != null) {
-            updates.addProperty("profile_image_uri", imageUri);
+        if (imageUrl != null) {
+            updates.addProperty("profile_image_uri", imageUrl);
         }
 
-        // ✅ FIXED: Use the current username to find the user, then update with new username
-        Call<JsonObject> call = supabaseService.updateUser(currentUsername, updates);
+        Call<JsonObject> call = supabaseService.updateUserById(userId, updates);
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(LoginProfileActivity.this, "Profile set successfully!", Toast.LENGTH_SHORT).show();
-                    goToMainScreen();
-                } else {
-                    Toast.makeText(LoginProfileActivity.this, "Failed to save profile to server", Toast.LENGTH_SHORT).show();
-                    // Still proceed to main screen since SharedPreferences are saved
-                    goToMainScreen();
-                }
+                runOnUiThread(() -> {
+                    continueButton.setEnabled(true);
+                    continueButton.setText("Continue");
+
+                    if (response.isSuccessful()) {
+                        Toast.makeText(LoginProfileActivity.this, "Profile set successfully!", Toast.LENGTH_SHORT).show();
+                        goToMainScreen();
+                    } else {
+                        goToMainScreen();
+                    }
+                });
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                Toast.makeText(LoginProfileActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                // Still proceed to main screen since SharedPreferences are saved
-                goToMainScreen();
+                runOnUiThread(() -> {
+                    continueButton.setEnabled(true);
+                    continueButton.setText("Continue");
+                    goToMainScreen();
+                });
             }
         });
     }
@@ -166,7 +197,6 @@ public class LoginProfileActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        // ✅ FIXED: Use USER ID instead of username for profile setup flag
         editor.putBoolean("profile_setup_done_" + userId, true);
         editor.apply();
 
@@ -177,7 +207,7 @@ public class LoginProfileActivity extends AppCompatActivity {
     private void goToMainScreen() {
         Intent intent = new Intent(LoginProfileActivity.this, MainActivity.class);
         intent.putExtra("user_id", userId);
-        intent.putExtra("username", currentUsername);
+        intent.putExtra("username", usernameEdit.getText().toString().trim());
         startActivity(intent);
         finish();
     }

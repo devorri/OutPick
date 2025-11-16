@@ -4,7 +4,7 @@ public class Outfit {
 
     // --- Core fields ---
     private String id; // CHANGED FROM int TO String for Supabase UUID
-    private String imageUri;
+    private String imageUri; // Should contain cloud URLs like "https://xyz.supabase.co/..."
     private String name;        // general name
     private String outfitName;  // for SnapshotDetailsActivity
     private String category;
@@ -27,9 +27,9 @@ public class Outfit {
 
     // ------------------- METADATA INITIALIZATION -------------------
     private void initializeMetadata(String event, String season, String style) {
-        this.event = (event != null && !event.isEmpty()) ? event : "";
-        this.season = (season != null && !season.isEmpty()) ? season : "";
-        this.style = (style != null && !style.isEmpty()) ? style : "";
+        this.event = (event != null && !event.isEmpty()) ? event : "Casual";
+        this.season = (season != null && !season.isEmpty()) ? season : "All-Season";
+        this.style = (style != null && !style.isEmpty()) ? style : "Casual";
     }
 
     // ------------------- CONSTRUCTORS -------------------
@@ -44,6 +44,21 @@ public class Outfit {
         this.gender = "Unisex";
         this.isFavorite = false;
         initializeMetadata("Casual", "All-Season", "Casual");
+    }
+
+    // ✅ IMPROVED: Constructor specifically for cloud data
+    public Outfit(String id, String cloudImageUrl, String name, String category,
+                  String description, String gender, String event,
+                  String season, String style) {
+        this.id = id;
+        this.imageUri = cloudImageUrl; // Explicitly named for clarity
+        this.name = name;
+        this.outfitName = name;
+        this.category = category;
+        this.description = description;
+        this.gender = gender;
+        this.isFavorite = false;
+        initializeMetadata(event, season, style);
     }
 
     // Constructor with String ID for Supabase
@@ -236,6 +251,16 @@ public class Outfit {
     public void setCategories(String categories) { this.categories = categories; }
     public void setImageBytes(byte[] imageBytes) { this.imageBytes = imageBytes; }
     public void setPath(String path) { this.path = path; }
+
+    // ✅ ADDED: Helper method to check if image is from cloud
+    public boolean isCloudImage() {
+        return imageUri != null && imageUri.startsWith("http");
+    }
+
+    // ✅ ADDED: Helper method to check if image is local file
+    public boolean isLocalImage() {
+        return imageUri != null && (imageUri.startsWith("file://") || imageUri.startsWith("/"));
+    }
 
     @Override
     public String toString() {

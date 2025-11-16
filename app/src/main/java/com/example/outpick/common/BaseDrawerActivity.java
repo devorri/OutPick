@@ -181,7 +181,7 @@ public abstract class BaseDrawerActivity extends AppCompatActivity implements Na
                     updateHeaderWithUserData(userJson);
 
                     // Update stored user ID for future use
-                    if (userJson.has("id")) {
+                    if (userJson.has("id") && !userJson.get("id").isJsonNull()) {
                         String newUserId = userJson.get("id").getAsString();
                         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                         prefs.edit().putString(PREF_USER_ID, newUserId).apply();
@@ -206,10 +206,14 @@ public abstract class BaseDrawerActivity extends AppCompatActivity implements Na
                 String displayName = "";
                 String profileUri = "";
 
-                if (userJson.has("username")) {
+                // Safe field access with null checks
+                if (userJson.has("username") && !userJson.get("username").isJsonNull()) {
                     displayName = userJson.get("username").getAsString();
+                } else if (userJson.has("display_name") && !userJson.get("display_name").isJsonNull()) {
+                    displayName = userJson.get("display_name").getAsString();
                 }
-                if (userJson.has("profile_image_uri")) {
+
+                if (userJson.has("profile_image_uri") && !userJson.get("profile_image_uri").isJsonNull()) {
                     profileUri = userJson.get("profile_image_uri").getAsString();
                 }
 

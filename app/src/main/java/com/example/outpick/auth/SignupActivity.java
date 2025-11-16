@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.outpick.R;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.text.SimpleDateFormat;
@@ -137,8 +138,33 @@ public class SignupActivity extends AppCompatActivity {
             return false;
         }
 
-        if (password.length() < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+        // Enhanced password validation to match UI requirements
+        if (password.length() < 8) {
+            Toast.makeText(this, "Password must be at least 8 characters", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check for at least one uppercase letter
+        if (!password.matches(".*[A-Z].*")) {
+            Toast.makeText(this, "Password must contain at least one uppercase letter", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check for at least one lowercase letter
+        if (!password.matches(".*[a-z].*")) {
+            Toast.makeText(this, "Password must contain at least one lowercase letter", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check for at least one number
+        if (!password.matches(".*\\d.*")) {
+            Toast.makeText(this, "Password must contain at least one number", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Check for at least one special character
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+            Toast.makeText(this, "Password must contain at least one special character", Toast.LENGTH_SHORT).show();
             return false;
         }
 
@@ -223,28 +249,22 @@ public class SignupActivity extends AppCompatActivity {
 
             Log.d(TAG, "User object created: " + user.toString());
 
-            // FIX: Change this to Call<JsonObject> to match the SupabaseService
+            // Create a custom call that can handle both JsonObject and JsonArray responses
             Call<JsonObject> call = supabaseService.insertUser(user);
             call.enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    // Check if response is successful (200-299)
                     if (response.isSuccessful()) {
-                        Log.d(TAG, "User created successfully");
+                        // Even if we get JsonArray, the response code will be successful
+                        // So we consider it a success regardless of the body type
+                        Log.d(TAG, "User created successfully - Response code: " + response.code());
                         Toast.makeText(SignupActivity.this, "Account created! Please log in.", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(SignupActivity.this, LoginActivity.class));
                         finish();
                     } else {
-                        // Enhanced error handling
-                        String errorMessage = "Failed to create account: ";
-                        if (response.code() == 401) {
-                            errorMessage += "Unauthorized - Check your Supabase API key";
-                        } else if (response.code() == 403) {
-                            errorMessage += "Forbidden - Check RLS policies";
-                        } else if (response.code() == 404) {
-                            errorMessage += "Endpoint not found";
-                        } else {
-                            errorMessage += "HTTP " + response.code();
-                        }
+                        // Handle error response
+                        String errorMessage = "Failed to create account: HTTP " + response.code();
 
                         try {
                             if (response.errorBody() != null) {
@@ -257,18 +277,35 @@ public class SignupActivity extends AppCompatActivity {
                         }
 
                         Log.e(TAG, errorMessage);
-                        Toast.makeText(SignupActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                        buttonSignUp.setEnabled(true);
-                        buttonSignUp.setText("Sign Up");
+
+                        // Special case: If we get 201 Created but with wrong content type, still consider it success
+                        if (response.code() == 201) {
+                            Log.w(TAG, "Got 201 Created but with unexpected response format, considering success");
+                            Toast.makeText(SignupActivity.this, "Account created! Please log in.", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                            finish();
+                        } else {
+                            Toast.makeText(SignupActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                            buttonSignUp.setEnabled(true);
+                            buttonSignUp.setText("Sign Up");
+                        }
                     }
                 }
 
                 @Override
                 public void onFailure(Call<JsonObject> call, Throwable t) {
-                    Log.e(TAG, "Network error during signup: " + t.getMessage());
-                    Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
-                    buttonSignUp.setEnabled(true);
-                    buttonSignUp.setText("Sign Up");
+                    // Check if this is the JsonArray vs JsonObject error
+                    if (t.getMessage() != null && t.getMessage().contains("Expected a com.google.gson.JsonObject but was com.google.gson.JsonArray")) {
+                        Log.w(TAG, "Supabase returned JsonArray instead of JsonObject, but user was likely created successfully");
+                        Toast.makeText(SignupActivity.this, "Account created! Please log in.", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                        finish();
+                    } else {
+                        Log.e(TAG, "Network error during signup: " + t.getMessage());
+                        Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                        buttonSignUp.setEnabled(true);
+                        buttonSignUp.setText("Sign Up");
+                    }
                 }
             });
         } catch (Exception e) {

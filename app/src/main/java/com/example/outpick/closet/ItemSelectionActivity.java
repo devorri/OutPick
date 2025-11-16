@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.outpick.database.models.ClothingItem;
 import com.example.outpick.common.adapters.ClothingItemAdapter;
+import com.example.outpick.database.repositories.ClothingRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
 import com.google.gson.Gson;
@@ -29,13 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 /**
  * Activity for displaying a grid of clothing items allowing the user to select one
- * to place on the TryOnActivity canvas. Updated for Supabase integration.
+ * to place on the TryOnActivity canvas. Updated for Supabase integration with Storage bucket.
  */
 public class ItemSelectionActivity extends AppCompatActivity implements ClothingItemAdapter.OnItemClickListener {
 
@@ -50,6 +47,7 @@ public class ItemSelectionActivity extends AppCompatActivity implements Clothing
     private RecyclerView recyclerView;
     private ImageView backButton;
     private SupabaseService supabaseService;
+    private ClothingRepository clothingRepository;
 
     // NOTE: This R.id.main_selection_layout is a placeholder ID and may need to be defined in a real resources file.
     private static final int R_ID_MAIN_SELECTION_LAYOUT = 1001; // Mocking R.id.main_selection_layout
@@ -61,8 +59,9 @@ public class ItemSelectionActivity extends AppCompatActivity implements Clothing
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize Supabase service
+        // Initialize Supabase service and repository
         supabaseService = SupabaseClient.getService();
+        clothingRepository = ClothingRepository.getInstance(supabaseService);
 
         // --- Placeholder UI Setup (mimicking activity_item_selection.xml) ---
         LinearLayout rootLayout = new LinearLayout(this);
@@ -124,7 +123,7 @@ public class ItemSelectionActivity extends AppCompatActivity implements Clothing
             return;
         }
 
-        // 2. Load clothing items from Supabase
+        // 2. Load clothing items from Supabase using repository
         loadClothingItemsFromSupabase(categoryFilter);
 
         // 5. Setup back button
@@ -132,60 +131,50 @@ public class ItemSelectionActivity extends AppCompatActivity implements Clothing
     }
 
     /**
-     * Load clothing items from Supabase and filter by category
+     * Load clothing items from Supabase using repository and filter by category
      */
     private void loadClothingItemsFromSupabase(String categoryFilter) {
-        Call<List<JsonObject>> call = supabaseService.getClothing();
-        call.enqueue(new Callback<List<JsonObject>>() {
-            @Override
-            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    allItemsFromDB = new ArrayList<>();
-                    for (JsonObject jsonItem : response.body()) {
-                        ClothingItem item = convertJsonToClothingItem(jsonItem);
-                        allItemsFromDB.add(item);
-                    }
+        // Show loading state
+        selectionTitle.setText("Loading " + categoryFilter + "...");
+
+        new Thread(() -> {
+            List<ClothingItem> items = clothingRepository.getAllClothing();
+
+            runOnUiThread(() -> {
+                if (items != null) {
+                    allItemsFromDB = items;
 
                     // Filter the items based on category
                     filteredItemList = getFilteredItems(allItemsFromDB, categoryFilter);
 
                     // Update the screen title
-                    selectionTitle.setText("Select " + categoryFilter);
+                    selectionTitle.setText("Select " + categoryFilter + " (" + filteredItemList.size() + " items)");
 
                     if (filteredItemList.isEmpty()) {
-                        Toast.makeText(ItemSelectionActivity.this, "No " + categoryFilter + " items found in your closet.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(ItemSelectionActivity.this,
+                                "No " + categoryFilter + " items found in your closet.",
+                                Toast.LENGTH_LONG).show();
                     }
 
                     // Setup RecyclerView
-                    ClothingItemAdapter adapter = new ClothingItemAdapter(ItemSelectionActivity.this, filteredItemList, ItemSelectionActivity.this);
+                    ClothingItemAdapter adapter = new ClothingItemAdapter(
+                            ItemSelectionActivity.this,
+                            filteredItemList,
+                            ItemSelectionActivity.this
+                    );
                     recyclerView.setLayoutManager(new GridLayoutManager(ItemSelectionActivity.this, 3)); // 3 items per row
                     recyclerView.setAdapter(adapter);
 
+                    Log.d("ItemSelection", "Loaded " + filteredItemList.size() + " " + categoryFilter + " items");
+
                 } else {
-                    Toast.makeText(ItemSelectionActivity.this, "Failed to load clothing items", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ItemSelectionActivity.this,
+                            "Failed to load clothing items",
+                            Toast.LENGTH_SHORT).show();
                     finish();
                 }
-            }
-
-            @Override
-            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
-                Toast.makeText(ItemSelectionActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        });
-    }
-
-    private ClothingItem convertJsonToClothingItem(JsonObject json) {
-        ClothingItem item = new ClothingItem();
-        if (json.has("id")) item.setId(json.get("id").getAsString());
-        if (json.has("name")) item.setName(json.get("name").getAsString());
-        if (json.has("category")) item.setCategory(json.get("category").getAsString());
-        if (json.has("image_path")) item.setImagePath(json.get("image_path").getAsString());
-        if (json.has("season")) item.setSeason(json.get("season").getAsString());
-        if (json.has("occasion")) item.setOccasion(json.get("occasion").getAsString());
-        if (json.has("closet_name")) item.setClosetName(json.get("closet_name").getAsString());
-        if (json.has("is_favorite")) item.setFavorite(json.get("is_favorite").getAsBoolean());
-        return item;
+            });
+        }).start();
     }
 
     /**
@@ -247,6 +236,10 @@ public class ItemSelectionActivity extends AppCompatActivity implements Clothing
      */
     @Override
     public void onItemClick(ClothingItem item) {
+        // Log the selected item for debugging
+        Log.d("ItemSelection", "Selected item: " + item.getName() +
+                ", Image URL: " + item.getImagePath());
+
         // 1. Serialize the selected item back to JSON string
         Gson gson = new Gson();
         String selectedItemJson = gson.toJson(item);
@@ -258,5 +251,11 @@ public class ItemSelectionActivity extends AppCompatActivity implements Clothing
         // 3. Set result and finish the activity
         setResult(Activity.RESULT_OK, resultIntent);
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Clean up any resources if needed
     }
 }

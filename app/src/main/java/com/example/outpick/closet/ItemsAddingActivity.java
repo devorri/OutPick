@@ -34,9 +34,9 @@ import com.example.outpick.database.supabase.SupabaseService;
 import com.example.outpick.dialogs.ItemFilterBottomSheetDialog;
 import com.example.outpick.outfits.OutfitCreationActivity;
 import com.example.outpick.utils.FileUtils;
+import com.example.outpick.utils.ImageUploader;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
-import com.google.gson.JsonObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,10 +48,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class ItemsAddingActivity extends AppCompatActivity {
 
@@ -74,6 +70,7 @@ public class ItemsAddingActivity extends AppCompatActivity {
     // Supabase service
     private SupabaseService supabaseService;
     private ClothingRepository clothingRepository;
+    private ImageUploader imageUploader;
 
     // --- Camera permission launcher ---
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -86,12 +83,21 @@ public class ItemsAddingActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Uri> takePictureLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicture(), (ActivityResultCallback<Boolean>) result -> {
                 if (result) {
-                    Intent intent = new Intent(ItemsAddingActivity.this, PreviewImageActivity.class);
-                    intent.putExtra("imageUri", imageUri.toString());
-                    intent.putExtra("from_items_adding", true);
-                    startActivity(intent);
+                    // Upload to Supabase Storage first, then proceed to preview
+                    uploadImageToSupabaseStorage(imageUri, "camera_capture");
                 } else {
                     Toast.makeText(this, "Photo capture cancelled", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    // --- Gallery launcher ---
+    private final ActivityResultLauncher<String> galleryLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) {
+                    // Upload to Supabase Storage first, then proceed to preview
+                    uploadImageToSupabaseStorage(uri, "gallery_selection");
+                } else {
+                    Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -103,6 +109,7 @@ public class ItemsAddingActivity extends AppCompatActivity {
         // Initialize Supabase
         supabaseService = SupabaseClient.getService();
         clothingRepository = ClothingRepository.getInstance(supabaseService);
+        imageUploader = new ImageUploader(this);
 
         // --- Back Button ---
         ImageView backButton = findViewById(R.id.back_button);
@@ -372,9 +379,7 @@ public class ItemsAddingActivity extends AppCompatActivity {
     }
 
     private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intent.setType("image/*");
-        startActivityForResult(Intent.createChooser(intent, "Choose from gallery"), GALLERY_REQUEST_CODE);
+        galleryLauncher.launch("image/*");
     }
 
     private void openCamera() {
@@ -395,23 +400,43 @@ public class ItemsAddingActivity extends AppCompatActivity {
         return File.createTempFile(fileName, ".jpg", storageDir);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    /**
+     * Upload image to Supabase Storage before proceeding to preview
+     */
+    private void uploadImageToSupabaseStorage(Uri imageUri, String source) {
+        Toast.makeText(this, "Uploading image...", Toast.LENGTH_SHORT).show();
 
-        if (requestCode == GALLERY_REQUEST_CODE && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            Uri selectedImageUri = data.getData();
-            String imagePath = FileUtils.copyImageToInternalStorage(this, selectedImageUri);
+        String fileName = "clothing_item_" + System.currentTimeMillis() + ".jpg";
 
-            if (imagePath != null) {
-                Intent intent = new Intent(this, PreviewImageActivity.class);
-                intent.putExtra("image_path", imagePath);
-                intent.putExtra("from_items_adding", true);
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "Failed to save image.", Toast.LENGTH_SHORT).show();
+        imageUploader.uploadImage(imageUri, "clothing", fileName, new ImageUploader.UploadCallback() {
+            @Override
+            public void onSuccess(String publicImageUrl) {
+                runOnUiThread(() -> {
+                    Toast.makeText(ItemsAddingActivity.this, "Image uploaded successfully!", Toast.LENGTH_SHORT).show();
+
+                    // Proceed to PreviewImageActivity with the public URL
+                    Intent intent = new Intent(ItemsAddingActivity.this, PreviewImageActivity.class);
+                    intent.putExtra("imageUrl", publicImageUrl); // Public URL from Supabase Storage
+                    intent.putExtra("imageUri", imageUri.toString()); // Local URI as backup
+                    intent.putExtra("from_items_adding", true);
+                    startActivity(intent);
+                });
             }
-        }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(ItemsAddingActivity.this,
+                            "Failed to upload image: " + error, Toast.LENGTH_LONG).show();
+
+                    // Fallback: proceed with local URI if upload fails
+                    Intent intent = new Intent(ItemsAddingActivity.this, PreviewImageActivity.class);
+                    intent.putExtra("imageUri", imageUri.toString());
+                    intent.putExtra("from_items_adding", true);
+                    startActivity(intent);
+                });
+            }
+        });
     }
 
     @Override

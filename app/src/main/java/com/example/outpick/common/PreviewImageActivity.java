@@ -25,6 +25,7 @@ import com.example.outpick.closet.YourClothesActivity;
 import com.example.outpick.database.repositories.ClothingRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
+import com.example.outpick.utils.ImageUploader;
 import com.google.android.flexbox.FlexboxLayout;
 
 import java.io.File;
@@ -59,7 +60,8 @@ public class PreviewImageActivity extends AppCompatActivity {
     private String selectedSubCategory = "";
     private Set<String> selectedSeasons = new HashSet<>();
     private Set<String> selectedOccasions = new HashSet<>();
-    private String imagePath = null;
+    private Uri selectedImageUri = null;
+    private String processedImagePath = null;
 
     private boolean fromItemsAdding = false;
     private boolean isCategoryExpanded = false;
@@ -81,14 +83,16 @@ public class PreviewImageActivity extends AppCompatActivity {
 
         // Initialize Supabase
         supabaseService = SupabaseClient.getService();
-        clothingRepository = ClothingRepository.getInstance(supabaseService);
+        clothingRepository = new ClothingRepository(supabaseService);
 
         fromItemsAdding = getIntent().getBooleanExtra("from_items_adding", false);
 
         initViews();
         loadImageFromIntent();
 
-        if (imagePath != null) removeBackgroundWithRemoveBg(new File(imagePath));
+        if (selectedImageUri != null) {
+            removeBackgroundWithRemoveBg(selectedImageUri);
+        }
 
         setupCategoryButtons();
         setupSeasonToggle();
@@ -152,20 +156,19 @@ public class PreviewImageActivity extends AppCompatActivity {
         String imageUriStr = getIntent().getStringExtra("imageUri");
         if (imageUriStr == null) imageUriStr = getIntent().getStringExtra("selected_image_uri");
 
-        String passedImagePath = getIntent().getStringExtra("image_path");
-        if (passedImagePath == null) passedImagePath = getIntent().getStringExtra("imagePath");
-
         try {
-            if (parcelableUri != null) imagePath = copyUriToInternalStorage(this, parcelableUri);
-            else if (imageUriStr != null) imagePath = copyUriToInternalStorage(this, Uri.parse(imageUriStr));
-            else if (passedImagePath != null) imagePath = passedImagePath;
+            if (parcelableUri != null) {
+                selectedImageUri = parcelableUri;
+            } else if (imageUriStr != null) {
+                selectedImageUri = Uri.parse(imageUriStr);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Error loading image", e);
         }
 
-        if (imagePath != null) {
+        if (selectedImageUri != null) {
             Glide.with(this)
-                    .load(new File(imagePath))
+                    .load(selectedImageUri)
                     .placeholder(R.drawable.ic_placeholder)
                     .error(R.drawable.ic_error)
                     .into(previewImageView);
@@ -349,7 +352,7 @@ public class PreviewImageActivity extends AppCompatActivity {
 
     private void setupSaveButton() {
         saveButton.setOnClickListener(v -> {
-            if (imagePath == null) {
+            if (selectedImageUri == null) {
                 Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -364,23 +367,58 @@ public class PreviewImageActivity extends AppCompatActivity {
             String occasionsStr = String.join(", ", selectedOccasions);
             String fullCategory = selectedMainCategory + ">" + selectedSubCategory;
 
-            // Save to Supabase instead of SQLite
-            saveItemToSupabase(fullCategory, seasonsStr, occasionsStr);
+            // Upload image to cloud first, then save to database
+            uploadImageAndSaveToSupabase(fullCategory, seasonsStr, occasionsStr);
         });
     }
 
-    private void saveItemToSupabase(String category, String season, String occasion) {
-        // Generate a name for the item
-        String itemName = selectedSubCategory + " - " + System.currentTimeMillis();
-
+    private void uploadImageAndSaveToSupabase(String category, String season, String occasion) {
         // Show progress
         progressBar.setVisibility(View.VISIBLE);
         saveButton.setEnabled(false);
+        saveButton.setText("Uploading...");
+
+        // Generate a unique filename
+        String fileName = "clothing_" + category.toLowerCase().replace(">", "_") +
+                "_" + System.currentTimeMillis() + ".png";
+
+        ImageUploader uploader = new ImageUploader(this);
+
+        // Use the processed image if available, otherwise use original
+        Uri imageToUpload = processedImagePath != null ? Uri.fromFile(new File(processedImagePath)) : selectedImageUri;
+
+        uploader.uploadImage(imageToUpload, "clothing", fileName, new ImageUploader.UploadCallback() {
+            @Override
+            public void onSuccess(String cloudImageUrl) {
+                // Image uploaded successfully, now save clothing item with cloud URL
+                saveItemToSupabase(category, season, occasion, cloudImageUrl);
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    saveButton.setEnabled(true);
+                    saveButton.setText("Save");
+                    Toast.makeText(PreviewImageActivity.this,
+                            "Failed to upload image: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private void saveItemToSupabase(String category, String season, String occasion, String cloudImageUrl) {
+        runOnUiThread(() -> {
+            saveButton.setText("Saving...");
+        });
+
+        // Generate a name for the item
+        String itemName = selectedSubCategory + " Item";
 
         new Thread(() -> {
             boolean success = clothingRepository.addClothingItem(
                     itemName,
-                    imagePath, // This should be a URI that's accessible, you might need to upload the image first
+                    cloudImageUrl, // Use CLOUD URL instead of local path
                     category,
                     season,
                     occasion
@@ -389,6 +427,7 @@ public class PreviewImageActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.GONE);
                 saveButton.setEnabled(true);
+                saveButton.setText("Save");
 
                 if (success) {
                     Toast.makeText(this, "Clothing item saved to cloud!", Toast.LENGTH_SHORT).show();
@@ -410,36 +449,15 @@ public class PreviewImageActivity extends AppCompatActivity {
         }).start();
     }
 
-    private String copyUriToInternalStorage(Context context, Uri uri) {
-        try {
-            InputStream inputStream = context.getContentResolver().openInputStream(uri);
-            if (inputStream == null) return null;
-
-            File directory = new File(getFilesDir(), "images");
-            if (!directory.exists()) directory.mkdirs();
-
-            String fileName = "img_" + System.currentTimeMillis() + ".jpg";
-            File imageFile = new File(directory, fileName);
-
-            OutputStream outputStream = new FileOutputStream(imageFile);
-            byte[] buffer = new byte[4096];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
-            }
-
-            inputStream.close();
-            outputStream.close();
-
-            return imageFile.getAbsolutePath();
-        } catch (Exception e) {
-            Log.e(TAG, "copyUriToInternalStorage failed", e);
-            return null;
-        }
-    }
-
-    private void removeBackgroundWithRemoveBg(File imageFile) {
+    private void removeBackgroundWithRemoveBg(Uri imageUri) {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+
+        // First, copy the URI to a file for remove.bg API
+        File imageFile = copyUriToFile(imageUri);
+        if (imageFile == null) {
+            progressBar.setVisibility(View.GONE);
+            return;
+        }
 
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = new MultipartBody.Builder()
@@ -486,10 +504,10 @@ public class PreviewImageActivity extends AppCompatActivity {
                         Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
                         if (bitmap != null) {
                             previewImageView.setImageBitmap(bitmap);
-                            imagePath = cutoutFile.getAbsolutePath();
+                            processedImagePath = cutoutFile.getAbsolutePath();
                         } else {
                             Glide.with(PreviewImageActivity.this)
-                                    .load(imageFile)
+                                    .load(selectedImageUri)
                                     .into(previewImageView);
                             Toast.makeText(PreviewImageActivity.this, "Could not decode processed image", Toast.LENGTH_SHORT).show();
                         }
@@ -505,5 +523,33 @@ public class PreviewImageActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private File copyUriToFile(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            if (inputStream == null) return null;
+
+            File directory = new File(getFilesDir(), "temp_images");
+            if (!directory.exists()) directory.mkdirs();
+
+            String fileName = "temp_" + System.currentTimeMillis() + ".jpg";
+            File imageFile = new File(directory, fileName);
+
+            OutputStream outputStream = new FileOutputStream(imageFile);
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+
+            inputStream.close();
+            outputStream.close();
+
+            return imageFile;
+        } catch (Exception e) {
+            Log.e(TAG, "copyUriToFile failed", e);
+            return null;
+        }
     }
 }

@@ -208,11 +208,12 @@ public class MainActivity extends BaseDrawerActivity {
             return;
         }
 
-        // Load closets from Supabase
+        // Load closets from Supabase - ONLY for current user
         loadClosetsFromSupabase(recyclerView);
     }
 
     private void loadClosetsFromSupabase(RecyclerView recyclerView) {
+        // Get ALL closets first (since we don't have a direct user_id filter endpoint)
         Call<List<JsonObject>> call = supabaseService.getClosets();
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
@@ -264,7 +265,7 @@ public class MainActivity extends BaseDrawerActivity {
                 String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.ic_create_closet)),
                 "create_card"));
 
-        // Add the user closets from Supabase
+        // Add the user closets from Supabase (only for current user)
         fullList.addAll(userClosets);
 
         adapter = new ClosetAdapter(this, fullList);

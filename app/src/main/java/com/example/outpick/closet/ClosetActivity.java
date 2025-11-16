@@ -3,7 +3,6 @@ package com.example.outpick.closet;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.ViewGroup;
@@ -14,16 +13,19 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.bumptech.glide.Glide;
 import com.example.outpick.MainActivity;
 import com.example.outpick.R;
 import com.example.outpick.common.BaseDrawerActivity;
 import com.example.outpick.common.FilterActivity;
 import com.example.outpick.common.adapters.ImageAdapter;
+import com.example.outpick.database.models.ClothingItem;
+import com.example.outpick.database.repositories.ClothingRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +41,9 @@ public class ClosetActivity extends BaseDrawerActivity {
 
     private ArrayList<Bitmap> clothingImages = new ArrayList<>();
     private ArrayList<String> clothingIds = new ArrayList<>(); // Changed to String for Supabase UUID
+    private ArrayList<String> clothingImageUrls = new ArrayList<>(); // ✅ ADDED: Store cloud URLs
     private SupabaseService supabaseService;
+    private ClothingRepository clothingRepository;
     private String currentUserId;
 
     @Override
@@ -49,6 +53,7 @@ public class ClosetActivity extends BaseDrawerActivity {
 
         // Initialize Supabase
         supabaseService = SupabaseClient.getService();
+        clothingRepository = new ClothingRepository(supabaseService);
 
         // Get current user ID
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
@@ -79,8 +84,9 @@ public class ClosetActivity extends BaseDrawerActivity {
         loadClothesFromSupabase();
 
         gridView.setOnItemClickListener((parent, view, position, id) -> {
-            Bitmap bitmap = clothingImages.get(position);
-            showImageDialog(bitmap);
+            // ✅ FIXED: Show image using URL instead of Bitmap
+            String imageUrl = clothingImageUrls.get(position);
+            showImageDialog(imageUrl);
         });
 
         gridView.setOnItemLongClickListener((parent, view, position, id) -> {
@@ -93,82 +99,51 @@ public class ClosetActivity extends BaseDrawerActivity {
     private void loadClothesFromSupabase() {
         clothingImages.clear();
         clothingIds.clear();
+        clothingImageUrls.clear(); // ✅ Clear URLs list
 
         if (currentUserId.isEmpty()) {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Call<List<JsonObject>> call = supabaseService.getClothing();
-        call.enqueue(new Callback<List<JsonObject>>() {
-            @Override
-            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    processClothingData(response.body());
-                } else {
-                    Toast.makeText(ClosetActivity.this, "Failed to load clothing items", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
-                Toast.makeText(ClosetActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void processClothingData(List<JsonObject> clothingItems) {
+        // ✅ FIXED: Use repository pattern for better data handling
         new Thread(() -> {
-            for (JsonObject item : clothingItems) {
-                try {
-                    // Only process items for current user
-                    String userId = item.has("user_id") ? item.get("user_id").getAsString() : "";
-                    if (!currentUserId.equals(userId)) {
-                        continue;
-                    }
+            try {
+                List<ClothingItem> clothingItems = clothingRepository.getAllClothing();
 
-                    String itemId = item.has("id") ? item.get("id").getAsString() : "";
-                    String imagePath = item.has("image_path") ? item.get("image_path").getAsString() : "";
+                runOnUiThread(() -> {
+                    // Process clothing items
+                    for (ClothingItem item : clothingItems) {
+                        // Only process items for current user
+                        if (!currentUserId.equals(item.getId())) {
+                            continue;
+                        }
 
-                    if (!itemId.isEmpty() && !imagePath.isEmpty()) {
-                        Bitmap bitmap = loadBitmapFromUri(imagePath);
-                        if (bitmap != null) {
-                            runOnUiThread(() -> {
-                                clothingIds.add(itemId);
-                                clothingImages.add(bitmap);
-                                updateGridView();
-                            });
+                        String itemId = item.getId();
+                        String imageUrl = item.getImagePath();
+
+                        if (itemId != null && !itemId.isEmpty() && imageUrl != null && !imageUrl.isEmpty()) {
+                            clothingIds.add(itemId);
+                            clothingImageUrls.add(imageUrl); // ✅ Store cloud URL
+
+                            // ✅ For backward compatibility, keep bitmap list but use placeholder
+                            // The actual image loading will be handled by ImageAdapter with Glide
+                            clothingImages.add(null); // Placeholder, actual loading in adapter
                         }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                    updateGridView();
+                    Toast.makeText(ClosetActivity.this, "Loaded " + clothingIds.size() + " items", Toast.LENGTH_SHORT).show();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() ->
+                        Toast.makeText(ClosetActivity.this, "Error loading clothes: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
 
-    private Bitmap loadBitmapFromUri(String imageUri) {
-        try {
-            if (imageUri.startsWith("content://") || imageUri.startsWith("file://")) {
-                Uri uri = Uri.parse(imageUri);
-                InputStream inputStream = getContentResolver().openInputStream(uri);
-                return BitmapFactory.decodeStream(inputStream);
-            } else if (imageUri.startsWith("http")) {
-                // For web URLs, you might want to use Glide or Picasso
-                // For now, return null and handle with placeholder
-                return null;
-            } else {
-                // Local file path
-                return BitmapFactory.decodeFile(imageUri);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     private void updateGridView() {
-        gridView.setAdapter(new ImageAdapter(this, clothingImages));
+        // ✅ FIXED: Pass both images and URLs to adapter
+        gridView.setAdapter(new ImageAdapter(this, clothingImages, clothingImageUrls));
     }
 
     private void deleteClothingItem(String itemId, int position) {
@@ -195,9 +170,10 @@ public class ClosetActivity extends BaseDrawerActivity {
                 if (response.isSuccessful()) {
                     runOnUiThread(() -> {
                         // Remove from local lists
-                        if (position < clothingIds.size() && position < clothingImages.size()) {
+                        if (position < clothingIds.size() && position < clothingImages.size() && position < clothingImageUrls.size()) {
                             clothingIds.remove(position);
                             clothingImages.remove(position);
+                            clothingImageUrls.remove(position);
                             updateGridView();
                         }
                         Toast.makeText(ClosetActivity.this, "Clothing item deleted", Toast.LENGTH_SHORT).show();
@@ -216,11 +192,18 @@ public class ClosetActivity extends BaseDrawerActivity {
         });
     }
 
-    private void showImageDialog(Bitmap bitmap) {
+    // ✅ FIXED: Show image using Glide with cloud URL
+    private void showImageDialog(String imageUrl) {
         ImageView imageView = new ImageView(this);
-        imageView.setImageBitmap(bitmap);
         imageView.setLayoutParams(new ViewGroup.LayoutParams(800, 800));
         imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+        // ✅ Use Glide to load cloud image
+        Glide.with(this)
+                .load(imageUrl)
+                .placeholder(R.drawable.ic_placeholder)
+                .error(R.drawable.ic_error)
+                .into(imageView);
 
         new AlertDialog.Builder(this)
                 .setView(imageView)

@@ -164,24 +164,60 @@ public class ContentOutfitsActivity extends AppCompatActivity {
         });
     }
 
+    /** Convert JSON objects to Outfit objects with null safety */
     private List<Outfit> convertJsonToOutfits(List<JsonObject> jsonObjects) {
         List<Outfit> outfits = new ArrayList<>();
         for (JsonObject json : jsonObjects) {
-            Outfit outfit = new Outfit();
+            try {
+                Outfit outfit = new Outfit();
 
-            if (json.has("id")) outfit.setId(json.get("id").getAsString());
-            if (json.has("name")) outfit.setName(json.get("name").getAsString());
-            if (json.has("image_uri")) outfit.setImageUri(json.get("image_uri").getAsString());
-            if (json.has("category")) outfit.setCategory(json.get("category").getAsString());
-            if (json.has("season")) outfit.setSeason(json.get("season").getAsString());
-            if (json.has("occasion")) outfit.setEvent(json.get("occasion").getAsString()); // FIXED: setEvent instead of setOccasion
-            if (json.has("style")) outfit.setStyle(json.get("style").getAsString());
-            if (json.has("gender")) outfit.setGender(json.get("gender").getAsString());
+                // Safe field access with null checks
+                if (json.has("id") && !json.get("id").isJsonNull()) {
+                    outfit.setId(json.get("id").getAsString());
+                }
 
-            // Set default values if needed
-            if (outfit.getName() == null) outfit.setName("Unnamed Outfit");
+                if (json.has("name") && !json.get("name").isJsonNull()) {
+                    outfit.setName(json.get("name").getAsString());
+                }
 
-            outfits.add(outfit);
+                if (json.has("image_uri") && !json.get("image_uri").isJsonNull()) {
+                    outfit.setImageUri(json.get("image_uri").getAsString());
+                }
+
+                if (json.has("category") && !json.get("category").isJsonNull()) {
+                    outfit.setCategory(json.get("category").getAsString());
+                }
+
+                if (json.has("season") && !json.get("season").isJsonNull()) {
+                    outfit.setSeason(json.get("season").getAsString());
+                }
+
+                // Handle both 'occasion' and 'event' fields
+                if (json.has("occasion") && !json.get("occasion").isJsonNull()) {
+                    outfit.setEvent(json.get("occasion").getAsString());
+                } else if (json.has("event") && !json.get("event").isJsonNull()) {
+                    outfit.setEvent(json.get("event").getAsString());
+                }
+
+                if (json.has("style") && !json.get("style").isJsonNull()) {
+                    outfit.setStyle(json.get("style").getAsString());
+                }
+
+                if (json.has("gender") && !json.get("gender").isJsonNull()) {
+                    outfit.setGender(json.get("gender").getAsString());
+                }
+
+                // Set default values if needed
+                if (outfit.getName() == null || outfit.getName().isEmpty()) {
+                    outfit.setName("Unnamed Outfit");
+                }
+
+                outfits.add(outfit);
+
+            } catch (Exception e) {
+                Log.e("ContentOutfits", "Error converting outfit JSON: " + e.getMessage());
+                // Skip this outfit and continue with others
+            }
         }
         return outfits;
     }
@@ -201,22 +237,25 @@ public class ContentOutfitsActivity extends AppCompatActivity {
 
         // Delete each selected outfit from Supabase
         int[] deleteCount = {0};
+        int[] successCount = {0};
+
         for (Outfit outfit : selectedOutfits) {
-            deleteOutfitFromSupabase(outfit, selectedOutfits.size(), deleteCount);
+            deleteOutfitFromSupabase(outfit, selectedOutfits.size(), deleteCount, successCount);
         }
     }
 
-    private void deleteOutfitFromSupabase(Outfit outfit, int totalCount, int[] deleteCount) {
+    private void deleteOutfitFromSupabase(Outfit outfit, int totalCount, int[] deleteCount, int[] successCount) {
         Call<Void> call = supabaseService.deleteOutfit(outfit.getId());
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 deleteCount[0]++;
                 if (response.isSuccessful()) {
+                    successCount[0]++;
                     // Remove from adapter
                     adapter.removeOutfit(outfit);
                 } else {
-                    Log.e("ContentOutfitsActivity", "Failed to delete outfit: " + outfit.getId());
+                    Log.e("ContentOutfitsActivity", "Failed to delete outfit: " + outfit.getId() + " - " + response.code());
                 }
 
                 // Check if all deletions are complete
@@ -224,7 +263,8 @@ public class ContentOutfitsActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         adapter.notifyDataSetChanged();
                         exitMultiSelectMode();
-                        Toast.makeText(ContentOutfitsActivity.this, "Deleted " + deleteCount[0] + " outfits", Toast.LENGTH_SHORT).show();
+                        String message = "Deleted " + successCount[0] + " of " + totalCount + " outfits";
+                        Toast.makeText(ContentOutfitsActivity.this, message, Toast.LENGTH_SHORT).show();
                     });
                 }
             }
@@ -238,7 +278,8 @@ public class ContentOutfitsActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         adapter.notifyDataSetChanged();
                         exitMultiSelectMode();
-                        Toast.makeText(ContentOutfitsActivity.this, "Completed deletions", Toast.LENGTH_SHORT).show();
+                        String message = "Completed " + successCount[0] + " of " + totalCount + " deletions";
+                        Toast.makeText(ContentOutfitsActivity.this, message, Toast.LENGTH_SHORT).show();
                     });
                 }
             }
@@ -249,9 +290,17 @@ public class ContentOutfitsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Refresh list when returning to the screen
-        loadOutfitsFromSupabase();
+        if (!multiSelectActive) {
+            loadOutfitsFromSupabase();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
         if (multiSelectActive) {
             exitMultiSelectMode();
+        } else {
+            super.onBackPressed();
         }
     }
 }

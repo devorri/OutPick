@@ -25,6 +25,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.outpick.R;
 import com.example.outpick.common.PreviewImageActivity;
+import com.example.outpick.utils.ImageUploader;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +40,7 @@ public class CreateOutfitActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 200;
 
     private Uri photoUri;
+    private ImageUploader imageUploader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +53,9 @@ public class CreateOutfitActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Initialize ImageUploader
+        imageUploader = new ImageUploader(this);
 
         // Back arrow
         ImageView backArrow = findViewById(R.id.backArrow);
@@ -134,19 +139,82 @@ public class CreateOutfitActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_IMAGE_CAPTURE) {
                 if (photoUri != null) {
-                    goToPreview(photoUri.toString());
+                    // Upload to cloud first, then go to preview
+                    uploadImageToCloud(photoUri, "camera_capture");
                 }
             } else if (requestCode == PICK_IMAGE_REQUEST && data != null && data.getData() != null) {
                 Uri selectedImageUri = data.getData();
-                goToPreview(selectedImageUri.toString());
+                // Upload to cloud first, then go to preview
+                uploadImageToCloud(selectedImageUri, "gallery_selection");
             }
         }
     }
 
-    private void goToPreview(String imageUri) {
+    /**
+     * Upload image to cloud storage and then proceed to preview
+     */
+    private void uploadImageToCloud(Uri imageUri, String source) {
+        showLoading("Uploading image...");
+
+        String fileName = generateFileName(source);
+        String folder = "user_outfits"; // Different folder for user-uploaded outfits
+
+        imageUploader.uploadImage(imageUri, folder, fileName, new ImageUploader.UploadCallback() {
+            @Override
+            public void onSuccess(String publicImageUrl) {
+                runOnUiThread(() -> {
+                    hideLoading();
+                    Toast.makeText(CreateOutfitActivity.this, "Image uploaded successfully!", Toast.LENGTH_SHORT).show();
+
+                    // Go to preview with both cloud URL and local URI
+                    goToPreview(publicImageUrl, imageUri.toString());
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    hideLoading();
+                    Toast.makeText(CreateOutfitActivity.this,
+                            "Upload failed: " + error + ". Using local image.", Toast.LENGTH_LONG).show();
+
+                    // Fallback: proceed with local URI only
+                    goToPreview(null, imageUri.toString());
+                });
+            }
+        });
+    }
+
+    private String generateFileName(String source) {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        return source + "_" + timeStamp + ".jpg";
+    }
+
+    private void goToPreview(String cloudImageUrl, String localImageUri) {
         Intent intent = new Intent(CreateOutfitActivity.this, PreviewImageActivity.class);
-        intent.putExtra("selected_image_uri", imageUri);
+
+        // Pass both cloud URL and local URI
+        if (cloudImageUrl != null) {
+            intent.putExtra("cloud_image_url", cloudImageUrl);
+        }
+        intent.putExtra("local_image_uri", localImageUri);
+
         startActivity(intent);
+    }
+
+    private void showLoading(String message) {
+        // You can implement a progress dialog here
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+
+        // Disable buttons during upload
+        findViewById(R.id.btnCamera).setEnabled(false);
+        findViewById(R.id.btnAlbum).setEnabled(false);
+    }
+
+    private void hideLoading() {
+        // Re-enable buttons
+        findViewById(R.id.btnCamera).setEnabled(true);
+        findViewById(R.id.btnAlbum).setEnabled(true);
     }
 
     @Override

@@ -57,7 +57,7 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
 
     private String originalOutfitName = "";
 
-    private String snapshotId = ""; // Changed to String for Supabase UUID
+    private String snapshotId = "";
     private SupabaseService supabaseService;
     private OutfitRepository outfitRepository;
 
@@ -76,7 +76,7 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
         supabaseService = SupabaseClient.getService();
         outfitRepository = new OutfitRepository(supabaseService);
 
-        snapshotId = getIntent().getStringExtra("snapshotId"); // Now expecting String ID
+        snapshotId = getIntent().getStringExtra("snapshotId");
 
         initViews();
         loadSnapshotData();
@@ -131,16 +131,24 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
     private void loadSnapshotData() {
         byte[] snapshot = getIntent().getByteArrayExtra("snapshot");
         String imagePath = getIntent().getStringExtra("path");
+        String imageUri = getIntent().getStringExtra("imageUri"); // ADDED: Cloud URL support
         String outfitName = getIntent().getStringExtra("outfitName");
         String event = getIntent().getStringExtra("event");
         String season = getIntent().getStringExtra("season");
         String style = getIntent().getStringExtra("style");
 
-        // Load image
+        // Load image - UPDATED FOR CLOUD SUPPORT
         if (snapshot != null && snapshot.length > 0) {
             Bitmap bmp = BitmapFactory.decodeByteArray(snapshot, 0, snapshot.length);
             ivSnapshot.setImageBitmap(bmp);
+        } else if (imageUri != null && !imageUri.isEmpty() && isCloudUrl(imageUri)) {
+            // Load from cloud URL
+            Glide.with(this).load(imageUri)
+                    .placeholder(PLACEHOLDER_IMAGE)
+                    .error(ERROR_IMAGE)
+                    .into(ivSnapshot);
         } else if (imagePath != null && !imagePath.isEmpty()) {
+            // Load from local file
             File file = new File(imagePath);
             if (file.exists()) {
                 Glide.with(this).load(file)
@@ -185,6 +193,15 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
         preselectChips(styleLayout, selectedStyles);
 
         checkIfSelectionsChanged();
+    }
+
+    private boolean isCloudUrl(String imageUri) {
+        return imageUri != null && (
+                imageUri.startsWith("https://") ||
+                        imageUri.startsWith("http://") ||
+                        imageUri.contains("supabase.co/storage") ||
+                        imageUri.contains("xaekxlyllgjxneyhurfp.supabase.co")
+        );
     }
 
     private String formatLimitedText(Set<String> items) {
@@ -407,14 +424,20 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
     }
 
     private void removeFromHistory() {
-        // We need to get the history ID first, then delete
         Call<List<JsonObject>> call = supabaseService.checkOutfitInHistory(snapshotId, "Used");
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
             public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    String historyId = response.body().get(0).get("id").getAsString();
-                    deleteFromHistory(historyId);
+                    // ADDED NULL CHECK
+                    JsonObject historyEntry = response.body().get(0);
+                    if (historyEntry.has("id") && !historyEntry.get("id").isJsonNull()) {
+                        String historyId = historyEntry.get("id").getAsString();
+                        deleteFromHistory(historyId);
+                    } else {
+                        Toast.makeText(SnapshotDetailsActivity.this, "Invalid history entry", Toast.LENGTH_SHORT).show();
+                        updateUseButtonText();
+                    }
                 } else {
                     Toast.makeText(SnapshotDetailsActivity.this, "Failed to find history entry", Toast.LENGTH_SHORT).show();
                     updateUseButtonText();
@@ -451,7 +474,6 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
     }
 
     private void updateUseButtonText() {
-        // Check current status in history
         Call<List<JsonObject>> call = supabaseService.checkOutfitInHistory(snapshotId, "Used");
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
@@ -462,7 +484,7 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<JsonObject>> call, Throwable t) {
-                btnUse.setText("Use"); // Default to "Use" on error
+                btnUse.setText("Use");
             }
         });
     }

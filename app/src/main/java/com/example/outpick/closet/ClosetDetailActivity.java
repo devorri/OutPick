@@ -20,17 +20,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.outpick.R;
 import com.example.outpick.database.models.ClosetContentItem;
+import com.example.outpick.database.models.ClothingItem;
+import com.example.outpick.database.repositories.ClothingRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class ClosetDetailActivity extends AppCompatActivity {
 
@@ -45,14 +42,16 @@ public class ClosetDetailActivity extends AppCompatActivity {
     private boolean isMultiSelect = false;
     private String closetName = "My Closet";
     private SupabaseService supabaseService;
+    private ClothingRepository clothingRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_closet_detail);
 
-        // Initialize Supabase service
+        // Initialize Supabase service and repository
         supabaseService = SupabaseClient.getService();
+        clothingRepository = ClothingRepository.getInstance(supabaseService);
 
         // Views initialization
         closetNameText = findViewById(R.id.closetNameText);
@@ -96,7 +95,6 @@ public class ClosetDetailActivity extends AppCompatActivity {
         super.onResume();
         // Reload data just in case the data changed (e.g., deleted via notification)
         loadClosetItems();
-        adapter.notifyDataSetChanged();
     }
 
     // Handles back press: exit multi-select or finish activity
@@ -118,50 +116,55 @@ public class ClosetDetailActivity extends AppCompatActivity {
         }
     }
 
-    /** Load both clothes + snapshots from Supabase */
+    /** Load clothing items from Supabase using repository */
     private void loadClosetItems() {
-        // Get clothing items for this closet
-        Call<List<JsonObject>> call = supabaseService.getClothingByCloset(closetName);
-        call.enqueue(new Callback<List<JsonObject>>() {
-            @Override
-            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    closetItems.clear();
-                    for (JsonObject jsonItem : response.body()) {
-                        ClosetContentItem item = convertJsonToClosetContentItem(jsonItem, ClosetContentItem.ItemType.CLOTHING);
-                        closetItems.add(item);
+        // Show loading state
+        Toast.makeText(this, "Loading closet items...", Toast.LENGTH_SHORT).show();
+
+        new Thread(() -> {
+            List<ClothingItem> clothingItems = clothingRepository.getClothingByCloset(closetName);
+
+            runOnUiThread(() -> {
+                closetItems.clear();
+
+                if (clothingItems != null && !clothingItems.isEmpty()) {
+                    // Convert ClothingItem to ClosetContentItem
+                    for (ClothingItem clothingItem : clothingItems) {
+                        ClosetContentItem closetItem = convertToClosetContentItem(clothingItem);
+                        closetItems.add(closetItem);
                     }
+
                     adapter.notifyDataSetChanged();
-
-                    // Also load snapshots if you have them
-                    loadSnapshotsFromSupabase();
+                    Toast.makeText(ClosetDetailActivity.this,
+                            "Loaded " + closetItems.size() + " items from " + closetName,
+                            Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(ClosetDetailActivity.this, "Failed to load closet items", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ClosetDetailActivity.this,
+                            "No items found in " + closetName,
+                            Toast.LENGTH_SHORT).show();
                 }
-            }
 
-            @Override
-            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
-                Toast.makeText(ClosetDetailActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                // Also load snapshots if you have them
+                loadSnapshotsFromSupabase();
+            });
+        }).start();
+    }
+
+    private ClosetContentItem convertToClosetContentItem(ClothingItem clothingItem) {
+        ClosetContentItem item = new ClosetContentItem();
+        item.setClothingId(clothingItem.getId());
+        item.setName(clothingItem.getName());
+        item.setImageUri(clothingItem.getImagePath()); // This should be the Supabase Storage URL
+        item.setCategory(clothingItem.getCategory());
+        item.setType(ClosetContentItem.ItemType.CLOTHING);
+        return item;
     }
 
     private void loadSnapshotsFromSupabase() {
         // If you have snapshots/outfits in your closet, load them here
         // This would depend on your Supabase table structure for snapshots
-        // For now, we'll just update the adapter
-        adapter.notifyDataSetChanged();
-    }
-
-    private ClosetContentItem convertJsonToClosetContentItem(JsonObject json, ClosetContentItem.ItemType type) {
-        ClosetContentItem item = new ClosetContentItem();
-        if (json.has("id")) item.setClothingId(json.get("id").getAsString());
-        if (json.has("name")) item.setName(json.get("name").getAsString());
-        if (json.has("image_path")) item.setImageUri(json.get("image_path").getAsString());
-        if (json.has("category")) item.setCategory(json.get("category").getAsString());
-        item.setType(type);
-        return item;
+        // For now, we'll just log that this needs implementation
+        // adapter.notifyDataSetChanged();
     }
 
     /** Show bottom sheet menu when 3-dot button clicked */
@@ -203,45 +206,46 @@ public class ClosetDetailActivity extends AppCompatActivity {
             return;
         }
 
-        for (ClosetContentItem item : selectedItems) {
-            if (item.getType() == ClosetContentItem.ItemType.CLOTHING) {
-                // Remove clothing item from Supabase
-                deleteClothingItemFromSupabase(item.getClothingId());
-            } else if (item.getType() == ClosetContentItem.ItemType.SNAPSHOT) {
-                // Remove snapshot from closet in Supabase
-                deleteSnapshotFromCloset(item.getSnapshotPath());
-            }
+        // Show deletion in progress
+        Toast.makeText(this, "Deleting " + selectedItems.size() + " items...", Toast.LENGTH_SHORT).show();
 
-            // Remove from local list
-            closetItems.remove(item);
-        }
+        new Thread(() -> {
+            int deletedCount = 0;
 
-        Toast.makeText(this, selectedItems.size() + " items removed from " + closetName, Toast.LENGTH_SHORT).show();
-        exitMultiSelectMode();
-        adapter.notifyDataSetChanged();
-    }
-
-    private void deleteClothingItemFromSupabase(String clothingId) {
-        Call<Void> call = supabaseService.deleteClothing(clothingId);
-        call.enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (!response.isSuccessful()) {
-                    Toast.makeText(ClosetDetailActivity.this, "Failed to delete clothing item", Toast.LENGTH_SHORT).show();
+            for (ClosetContentItem item : selectedItems) {
+                if (item.getType() == ClosetContentItem.ItemType.CLOTHING) {
+                    // Remove clothing item from Supabase using repository
+                    boolean success = clothingRepository.deleteClothing(item.getClothingId());
+                    if (success) {
+                        deletedCount++;
+                        // Remove from local list
+                        closetItems.remove(item);
+                    }
+                } else if (item.getType() == ClosetContentItem.ItemType.SNAPSHOT) {
+                    // Remove snapshot from closet in Supabase
+                    // This would need implementation based on your snapshot structure
+                    // For now, just remove from local list
+                    closetItems.remove(item);
+                    deletedCount++;
                 }
             }
 
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(ClosetDetailActivity.this, "Network error deleting clothing item", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
+            final int finalDeletedCount = deletedCount;
+            runOnUiThread(() -> {
+                if (finalDeletedCount > 0) {
+                    Toast.makeText(ClosetDetailActivity.this,
+                            finalDeletedCount + " items removed from " + closetName,
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ClosetDetailActivity.this,
+                            "Failed to delete items",
+                            Toast.LENGTH_SHORT).show();
+                }
 
-    private void deleteSnapshotFromCloset(String snapshotPath) {
-        // This would depend on your Supabase table structure for snapshots
-        // For now, we'll just show a message
-        Toast.makeText(this, "Snapshot removal from Supabase needs implementation", Toast.LENGTH_SHORT).show();
+                exitMultiSelectMode();
+                adapter.notifyDataSetChanged();
+            });
+        }).start();
     }
 
     /**
@@ -270,11 +274,13 @@ public class ClosetDetailActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             ClosetContentItem item = items.get(position);
 
+            // Load image using Glide - assuming item.getImageUri() contains Supabase Storage URL
             if (item.getType() == ClosetContentItem.ItemType.CLOTHING) {
                 holder.itemImage.setBackgroundColor(Color.TRANSPARENT);
                 Glide.with(context)
                         .load(item.getImageUri())
                         .placeholder(R.drawable.ic_placeholder)
+                        .error(R.drawable.ic_placeholder)
                         .into(holder.itemImage);
 
             } else if (item.getType() == ClosetContentItem.ItemType.SNAPSHOT) {
@@ -282,6 +288,7 @@ public class ClosetDetailActivity extends AppCompatActivity {
                 Glide.with(context)
                         .load(item.getSnapshotPath())
                         .placeholder(R.drawable.ic_placeholder)
+                        .error(R.drawable.ic_placeholder)
                         .into(holder.itemImage);
             }
 
@@ -303,8 +310,22 @@ public class ClosetDetailActivity extends AppCompatActivity {
                         selectedItems.add(item);
                     }
                     notifyItemChanged(position);
+                } else {
+                    // TODO: Add single-click logic here (e.g., launch detail activity)
+                    // For now, show a simple toast
+                    Toast.makeText(context, "Clicked: " + item.getName(), Toast.LENGTH_SHORT).show();
                 }
-                // TODO: Add single-click logic here (e.g., launch detail activity)
+            });
+
+            // Long press to enter multi-select mode
+            holder.itemView.setOnLongClickListener(v -> {
+                if (!isMultiSelect) {
+                    enterMultiSelectMode();
+                    selectedItems.add(item);
+                    notifyItemChanged(position);
+                    return true;
+                }
+                return false;
             });
         }
 

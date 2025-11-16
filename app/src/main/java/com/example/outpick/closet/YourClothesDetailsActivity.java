@@ -14,19 +14,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.outpick.R;
 import com.example.outpick.database.models.ClothingItem;
+import com.example.outpick.database.repositories.ClothingRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
 import com.google.android.flexbox.FlexboxLayout;
-import com.google.gson.JsonObject;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class YourClothesDetailsActivity extends AppCompatActivity {
 
@@ -50,14 +45,16 @@ public class YourClothesDetailsActivity extends AppCompatActivity {
 
     private ClothingItem clothingItem;
     private SupabaseService supabaseService;
+    private ClothingRepository clothingRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_your_clothes_details);
 
-        // Initialize Supabase service
+        // Initialize Supabase service and repository
         supabaseService = SupabaseClient.getService();
+        clothingRepository = ClothingRepository.getInstance(supabaseService);
 
         initViews();
 
@@ -70,9 +67,20 @@ public class YourClothesDetailsActivity extends AppCompatActivity {
 
         clothingItem = (ClothingItem) getIntent().getSerializableExtra("item");
         if (clothingItem != null) {
-            // Load image
-            if (clothingItem.getImageUri() != null && !clothingItem.getImageUri().isEmpty()) {
-                Glide.with(this).load(new File(clothingItem.getImageUri())).into(previewImageView);
+            // Load image from Supabase Storage URL
+            if (clothingItem.getImagePath() != null && !clothingItem.getImagePath().isEmpty()) {
+                Glide.with(this)
+                        .load(clothingItem.getImagePath())
+                        .placeholder(R.drawable.ic_placeholder)
+                        .error(R.drawable.ic_placeholder)
+                        .into(previewImageView);
+            } else if (clothingItem.getImageUri() != null && !clothingItem.getImageUri().isEmpty()) {
+                // Fallback to local URI if imagePath is not available
+                Glide.with(this)
+                        .load(clothingItem.getImageUri())
+                        .placeholder(R.drawable.ic_placeholder)
+                        .error(R.drawable.ic_placeholder)
+                        .into(previewImageView);
             }
 
             // Detect category & highlight main + sub
@@ -164,8 +172,17 @@ public class YourClothesDetailsActivity extends AppCompatActivity {
             selectedMainCategory = "Footwear";
             selectedSubCategory = category;
         } else {
-            selectedMainCategory = category;
-            selectedSubCategory = "";
+            // Handle categories that might be in "Main > Sub" format
+            if (category.contains(">")) {
+                String[] parts = category.split(">");
+                if (parts.length >= 2) {
+                    selectedMainCategory = parts[0].trim();
+                    selectedSubCategory = parts[1].trim();
+                }
+            } else {
+                selectedMainCategory = category;
+                selectedSubCategory = "";
+            }
         }
         updateCategoryDisplay();
     }
@@ -412,27 +429,30 @@ public class YourClothesDetailsActivity extends AppCompatActivity {
                     ? selectedMainCategory + " > " + selectedSubCategory
                     : selectedMainCategory;
 
+            // Update the clothing item object
             clothingItem.setCategory(finalCategory);
             clothingItem.setSeason(String.join(", ", selectedSeasons));
             clothingItem.setOccasion(String.join(", ", selectedOccasions));
 
-            // Update clothing item in Supabase
+            // Show loading state
+            saveButton.setEnabled(false);
+            saveButton.setText("Saving...");
+
+            // Update clothing item in Supabase using repository
             updateClothingItemInSupabase();
         });
     }
 
     private void updateClothingItemInSupabase() {
-        JsonObject updates = new JsonObject();
-        updates.addProperty("category", clothingItem.getCategory());
-        updates.addProperty("season", clothingItem.getSeason());
-        updates.addProperty("occasion", clothingItem.getOccasion());
+        new Thread(() -> {
+            boolean success = clothingRepository.updateClothingItem(clothingItem);
 
-        Call<JsonObject> call = supabaseService.updateClothing(clothingItem.getId(), updates);
-        call.enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(YourClothesDetailsActivity.this, "Item updated!", Toast.LENGTH_SHORT).show();
+            runOnUiThread(() -> {
+                saveButton.setEnabled(true);
+                saveButton.setText("Save");
+
+                if (success) {
+                    Toast.makeText(YourClothesDetailsActivity.this, "Item updated successfully!", Toast.LENGTH_SHORT).show();
 
                     Intent intent = new Intent(YourClothesDetailsActivity.this, YourClothesActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -441,12 +461,7 @@ public class YourClothesDetailsActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(YourClothesDetailsActivity.this, "Failed to update item", Toast.LENGTH_SHORT).show();
                 }
-            }
-
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                Toast.makeText(YourClothesDetailsActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+            });
+        }).start();
     }
 }

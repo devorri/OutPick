@@ -25,27 +25,19 @@ import com.example.outpick.common.BaseDrawerActivity;
 import com.example.outpick.common.PreviewImageActivity;
 import com.example.outpick.common.adapters.ClothingAdapter;
 import com.example.outpick.database.models.ClothingItem;
+import com.example.outpick.database.repositories.ClothingRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
 import com.example.outpick.dialogs.FilterBottomSheetDialog;
 import com.example.outpick.dialogs.SortBottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.gson.JsonObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class YourClothesActivity extends BaseDrawerActivity implements FilterBottomSheetDialog.FilterListener {
 
@@ -61,6 +53,7 @@ public class YourClothesActivity extends BaseDrawerActivity implements FilterBot
     private ArrayList<ClothingItem> clothingItems = new ArrayList<>();
     private ArrayList<ClothingItem> allClothingItems = new ArrayList<>();
     private SupabaseService supabaseService;
+    private ClothingRepository clothingRepository;
     private LinearLayout bottomBar;
     private LinearLayout emptyStateLayout;
     private LinearLayout btnDelete;
@@ -87,8 +80,9 @@ public class YourClothesActivity extends BaseDrawerActivity implements FilterBot
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_your_clothes);
 
-        // Initialize Supabase service
+        // Initialize Supabase service and repository
         supabaseService = SupabaseClient.getService();
+        clothingRepository = ClothingRepository.getInstance(supabaseService);
 
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         lastSelectedSort = sharedPreferences.getString(KEY_LAST_SORT, "Recently added");
@@ -242,75 +236,46 @@ public class YourClothesActivity extends BaseDrawerActivity implements FilterBot
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri selectedImageUri = data.getData();
-            File imageFile = copyImageToInternalStorage(selectedImageUri);
-            if (imageFile != null) {
-                Intent intent = new Intent(this, PreviewImageActivity.class);
-                intent.putExtra("image_path", imageFile.getAbsolutePath());
-                startActivity(intent);
-            } else {
-                showToast("Failed to save image.");
-            }
-        }
-    }
 
-    private File copyImageToInternalStorage(Uri uri) {
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(uri);
-            if (inputStream == null) return null;
-            File directory = new File(getFilesDir(), "images");
-            if (!directory.exists()) directory.mkdirs();
-            String fileName = "img_" + System.currentTimeMillis() + ".jpg";
-            File imageFile = new File(directory, fileName);
-            try (OutputStream outputStream = new FileOutputStream(imageFile)) {
-                byte[] buffer = new byte[4096];
-                int length;
-                while ((length = inputStream.read(buffer)) > 0) outputStream.write(buffer, 0, length);
-            }
-            return imageFile;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            // Directly proceed to PreviewImageActivity with the URI
+            // The image will be uploaded to Supabase Storage in PreviewImageActivity
+            Intent intent = new Intent(this, PreviewImageActivity.class);
+            intent.putExtra("imageUri", selectedImageUri.toString());
+            intent.putExtra("from_your_clothes", true);
+            startActivity(intent);
         }
     }
 
     private void loadClothesFromSupabase() {
-        Call<List<JsonObject>> call = supabaseService.getClothing();
-        call.enqueue(new Callback<List<JsonObject>>() {
-            @Override
-            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
-                if (response.isSuccessful() && response.body() != null) {
+        // Show loading state
+        emptyStateLayout.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
+
+        new Thread(() -> {
+            List<ClothingItem> items = clothingRepository.getAllClothing();
+
+            runOnUiThread(() -> {
+                if (items != null) {
                     allClothingItems.clear();
-                    for (JsonObject jsonItem : response.body()) {
-                        ClothingItem item = convertJsonToClothingItem(jsonItem);
-                        allClothingItems.add(item);
-                    }
+                    allClothingItems.addAll(items);
                     clothingItems.clear();
                     clothingItems.addAll(allClothingItems);
+
                     updateCategoryTabVisibility();
                     filterAndDisplay();
+
+                    if (allClothingItems.isEmpty()) {
+                        showToast("No clothing items found");
+                    } else {
+                        showToast("Loaded " + allClothingItems.size() + " items");
+                    }
                 } else {
                     showToast("Failed to load clothing items");
+                    // Show empty state on error
+                    updateUI(new ArrayList<>());
                 }
-            }
-
-            @Override
-            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
-                showToast("Network error: " + t.getMessage());
-            }
-        });
-    }
-
-    private ClothingItem convertJsonToClothingItem(JsonObject json) {
-        ClothingItem item = new ClothingItem();
-        if (json.has("id")) item.setId(json.get("id").getAsString());
-        if (json.has("name")) item.setName(json.get("name").getAsString());
-        if (json.has("category")) item.setCategory(json.get("category").getAsString());
-        if (json.has("image_path")) item.setImagePath(json.get("image_path").getAsString());
-        if (json.has("season")) item.setSeason(json.get("season").getAsString());
-        if (json.has("occasion")) item.setOccasion(json.get("occasion").getAsString());
-        if (json.has("closet_name")) item.setClosetName(json.get("closet_name").getAsString());
-        if (json.has("is_favorite")) item.setFavorite(json.get("is_favorite").getAsBoolean());
-        return item;
+            });
+        }).start();
     }
 
     // ✅ FIXED: More robust tab visibility detection for category changes
@@ -465,31 +430,36 @@ public class YourClothesActivity extends BaseDrawerActivity implements FilterBot
             return;
         }
 
-        // Delete from Supabase
-        for (ClothingItem item : selected) {
-            Call<Void> call = supabaseService.deleteClothing(item.getId());
-            call.enqueue(new Callback<Void>() {
-                @Override
-                public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (!response.isSuccessful()) {
-                        showToast("Failed to delete item: " + item.getName());
-                    }
+        // Show deletion progress
+        showToast("Deleting " + selected.size() + " item(s)...");
+
+        new Thread(() -> {
+            int deletedCount = 0;
+
+            for (ClothingItem item : selected) {
+                boolean success = clothingRepository.deleteClothing(item.getId());
+                if (success) {
+                    deletedCount++;
+                    // Remove from local lists
+                    allClothingItems.remove(item);
+                    clothingItems.remove(item);
+                }
+            }
+
+            final int finalDeletedCount = deletedCount;
+            runOnUiThread(() -> {
+                if (finalDeletedCount > 0) {
+                    showToast(finalDeletedCount + " item(s) deleted successfully");
+                    adapter.notifyDataSetChanged();
+                    updateCategoryTabVisibility();
+                    filterAndDisplay();
+                } else {
+                    showToast("Failed to delete items");
                 }
 
-                @Override
-                public void onFailure(Call<Void> call, Throwable t) {
-                    showToast("Network error deleting item: " + item.getName());
-                }
+                exitSelectionMode();
             });
-        }
-
-        adapter.deleteSelectedItems();
-        showToast(selected.size() + " item(s) deleted");
-        exitSelectionMode();
-        loadClothesFromSupabase();
-        applySorting();
-        filterAndDisplay();
-        updateCategoryTabVisibility();
+        }).start();
     }
 
     // ✅ FILTER CALLBACK — store selections and refresh list

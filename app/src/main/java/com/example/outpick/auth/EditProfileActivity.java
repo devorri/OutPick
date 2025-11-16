@@ -18,6 +18,8 @@ import androidx.cardview.widget.CardView;
 import com.example.outpick.R;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
+import com.example.outpick.utils.ImageUploader;
+import com.bumptech.glide.Glide;
 import com.google.gson.JsonObject;
 
 import retrofit2.Call;
@@ -30,11 +32,10 @@ public class EditProfileActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "UserPrefs";
 
     // Constants based on LoginActivity and BaseDrawerActivity
-    public static final String PREF_IMMUTABLE_USERNAME = "immutable_username"; // The unique ID for DB lookups
-    private static final String PREF_DISPLAY_NAME_KEY = "username"; // The mutable name for UI display
+    public static final String PREF_IMMUTABLE_USERNAME = "immutable_username";
+    private static final String PREF_DISPLAY_NAME_KEY = "username";
     private static final String PREF_PROFILE_IMAGE_URI = "profile_image_uri";
 
-    // NOTE: Replace R.drawable.account_circle with the actual ID of your default profile image
     private static final int DEFAULT_PROFILE_IMAGE_RES_ID = R.drawable.account_circle;
 
     private EditText editUsername;
@@ -45,10 +46,10 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private SupabaseService supabaseService;
 
-    // CRITICAL: Hold the immutable ID and the mutable display name separately
     private String immutableLoginId;
     private String currentDisplayName;
-    private Uri selectedImageUri; // Holds the URI if a new picture is selected or if existing one is loaded
+    private Uri selectedImageUri;
+    private boolean isUploading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        // CRITICAL FIX: Load the immutable ID (for DB lookups) and the mutable display name (for UI)
         immutableLoginId = prefs.getString(PREF_IMMUTABLE_USERNAME, null);
         currentDisplayName = prefs.getString(PREF_DISPLAY_NAME_KEY, null);
 
@@ -71,7 +71,6 @@ public class EditProfileActivity extends AppCompatActivity {
         profileCard = findViewById(R.id.profileCard);
         profileImagePlaceholder = findViewById(R.id.profileImagePlaceholder);
 
-        // Show current display name in EditText
         if (currentDisplayName != null && !currentDisplayName.isEmpty()) {
             editUsername.setText(currentDisplayName);
         } else {
@@ -80,93 +79,79 @@ public class EditProfileActivity extends AppCompatActivity {
             Toast.makeText(this, "User session not found. Please re-login.", Toast.LENGTH_LONG).show();
         }
 
-        // Check if the immutable ID is missing (a critical session error)
         if (immutableLoginId == null || immutableLoginId.isEmpty()) {
             Log.e("EditProfileActivity", "CRITICAL ERROR: Immutable Login ID not found in session!");
-            // Disable save button to prevent catastrophic DB errors
             btnSave.setEnabled(false);
         }
 
         // Load existing profile image (if any)
         loadProfileImage(DEFAULT_PROFILE_IMAGE_RES_ID);
 
-        // 🔹 Back Button → go back to previous screen
         btnBack.setOnClickListener(v -> onBackPressed());
-
-        // 🔹 Profile Card Click → Open Gallery
         profileCard.setOnClickListener(v -> openGallery());
-
-        // 🔹 Save Button → update username and/or profile picture
         btnSave.setOnClickListener(v -> saveProfileChanges());
     }
 
-    /**
-     * Loads the profile image from SharedPreferences on activity creation.
-     * Includes the CRITICAL try-catch block to handle lost URI permissions.
-     * @param defaultImageResId The resource ID for the default profile image.
-     */
     private void loadProfileImage(int defaultImageResId) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String savedUriString = prefs.getString(PREF_PROFILE_IMAGE_URI, null);
 
-        // 1. Check if a URI string is saved
         if (savedUriString != null && !savedUriString.isEmpty()) {
             try {
-                // Attempt to parse the URI
-                Uri savedUri = Uri.parse(savedUriString);
+                // Check if it's a cloud URL or local URI
+                if (isCloudUrl(savedUriString)) {
+                    // It's a cloud URL - load with Glide
+                    Glide.with(this)
+                            .load(savedUriString)
+                            .placeholder(defaultImageResId)
+                            .error(defaultImageResId)
+                            .into(profileImagePlaceholder);
+                } else {
+                    // It's a local URI
+                    Uri savedUri = Uri.parse(savedUriString);
+                    profileImagePlaceholder.setImageURI(savedUri);
+                }
 
-                // Attempt to display the image. This line can throw SecurityException
-                // if Android has revoked the app's read permission.
-                profileImagePlaceholder.setImageURI(savedUri);
-
-                // If loading succeeds, keep this URI in memory as the current state
-                selectedImageUri = savedUri;
-                Log.d("EditProfileActivity", "Loaded saved profile image successfully: " + savedUriString);
-
-                // Set the scale type to CENTER_CROP to ensure the image fills the circular ImageView
                 profileImagePlaceholder.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                selectedImageUri = Uri.parse(savedUriString); // Keep reference for comparison
 
             } catch (SecurityException e) {
-                // 2. Catch failure due to lost permission or bad URI
-                Log.e("EditProfileActivity", "CRITICAL: Permission failure or bad URI. Failed to load saved profile image. Clearing URI.", e);
-
-                // Clear the problematic URI from SharedPreferences and DB
+                Log.e("EditProfileActivity", "Permission failure loading profile image", e);
                 prefs.edit().remove(PREF_PROFILE_IMAGE_URI).apply();
-                if (immutableLoginId != null) {
-                    updateProfileImageUriInSupabase(null);
-                }
-
-                // Fallback to default
-                profileImagePlaceholder.setImageResource(defaultImageResId);
-                profileImagePlaceholder.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                selectedImageUri = null;
-                Toast.makeText(this, "Profile picture failed to load. Please select a new one.", Toast.LENGTH_LONG).show();
+                updateProfileImageUriInSupabase(null);
+                setDefaultProfileImage(defaultImageResId);
             } catch (Exception e) {
-                // Catch other exceptions like parsing errors
-                Log.e("EditProfileActivity", "General failure loading profile image.", e);
-                // Clear the problematic URI from SharedPreferences and DB
+                Log.e("EditProfileActivity", "General failure loading profile image", e);
                 prefs.edit().remove(PREF_PROFILE_IMAGE_URI).apply();
-                if (immutableLoginId != null) {
-                    updateProfileImageUriInSupabase(null);
-                }
-                profileImagePlaceholder.setImageResource(defaultImageResId);
-                profileImagePlaceholder.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                selectedImageUri = null;
+                updateProfileImageUriInSupabase(null);
+                setDefaultProfileImage(defaultImageResId);
             }
         } else {
-            // Set default if no URI is saved.
-            profileImagePlaceholder.setImageResource(defaultImageResId);
-            profileImagePlaceholder.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-            selectedImageUri = null;
+            setDefaultProfileImage(defaultImageResId);
         }
     }
 
-    /**
-     * Opens the gallery using an Intent to pick an image.
-     */
+    private void setDefaultProfileImage(int defaultImageResId) {
+        profileImagePlaceholder.setImageResource(defaultImageResId);
+        profileImagePlaceholder.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        selectedImageUri = null;
+    }
+
+    private boolean isCloudUrl(String imageUri) {
+        return imageUri != null && (
+                imageUri.startsWith("https://") ||
+                        imageUri.startsWith("http://") ||
+                        imageUri.contains("supabase.co/storage") ||
+                        imageUri.contains("xaekxlyllgjxneyhurfp.supabase.co")
+        );
+    }
+
     private void openGallery() {
-        // Use Intent.ACTION_GET_CONTENT which is generally better for requesting content
-        // for which you need a long-term permission.
+        if (isUploading) {
+            Toast.makeText(this, "Please wait...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
@@ -179,25 +164,19 @@ public class EditProfileActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri imageUri = data.getData();
 
-            // **CRITICAL FIX**: Persist read permission for the URI using takePersistableUriPermission.
             try {
-                // Request READ permission
-                final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
-
-                if (imageUri != null) {
-                    // Request persistent access from the Content Resolver
-                    getContentResolver().takePersistableUriPermission(imageUri, takeFlags);
-                    Log.d("EditProfileActivity", "Persisted URI permission successfully for: " + imageUri.toString());
-                }
+                getContentResolver().takePersistableUriPermission(imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             } catch (SecurityException e) {
-                // Log exception if permission fails but continue trying to use the URI for now
-                Log.e("EditProfileActivity", "Failed to persist URI permission. Image may not persist.", e);
+                Log.e("EditProfileActivity", "Failed to persist URI permission", e);
             }
 
-            // Set the selected image to the circular ImageView immediately
-            profileImagePlaceholder.setImageURI(imageUri);
-            profileImagePlaceholder.setScaleType(ImageView.ScaleType.FIT_XY); // CRITICAL: Ensure image fills the circle
-            selectedImageUri = imageUri; // Store the new URI temporarily
+            // Show preview with Glide
+            Glide.with(this)
+                    .load(imageUri)
+                    .placeholder(DEFAULT_PROFILE_IMAGE_RES_ID)
+                    .into(profileImagePlaceholder);
+            profileImagePlaceholder.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            selectedImageUri = imageUri;
 
             Toast.makeText(this, "New picture selected. Click 'Save' to confirm.", Toast.LENGTH_SHORT).show();
         } else if (resultCode == RESULT_CANCELED) {
@@ -205,17 +184,17 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Handles the logic for updating the display name and saving the profile picture URI.
-     */
     private void saveProfileChanges() {
+        if (isUploading) {
+            Toast.makeText(this, "Please wait...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String newDisplayName = editUsername.getText().toString().trim();
 
-        // Compare new input against the original loaded display name
         boolean displayNameChangeRequested = currentDisplayName != null && !newDisplayName.equals(currentDisplayName);
-
-        // NOTE: This check handles if a new URI was selected or if the saved URI was cleared.
-        boolean imageChangeRequested = (selectedImageUri != null && !isImageUriSaved(PREF_PROFILE_IMAGE_URI)) || (selectedImageUri == null && isImageUriSaved(PREF_PROFILE_IMAGE_URI));
+        boolean imageChangeRequested = (selectedImageUri != null && !isImageUriSaved(PREF_PROFILE_IMAGE_URI)) ||
+                (selectedImageUri == null && isImageUriSaved(PREF_PROFILE_IMAGE_URI));
 
         if (newDisplayName.isEmpty()) {
             Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT).show();
@@ -227,18 +206,54 @@ public class EditProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Check if no effective changes were made
         if (!displayNameChangeRequested && !imageChangeRequested) {
             Toast.makeText(this, "No changes made", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        // Update profile in Supabase
-        updateProfileInSupabase(newDisplayName, displayNameChangeRequested, imageChangeRequested);
+        // If new image selected, upload it first
+        if (imageChangeRequested && selectedImageUri != null) {
+            uploadProfileImageAndSave(newDisplayName, displayNameChangeRequested);
+        } else {
+            // No image change or removing image
+            updateProfileInSupabase(newDisplayName, displayNameChangeRequested, imageChangeRequested, null);
+        }
     }
 
-    private void updateProfileInSupabase(String newDisplayName, boolean updateDisplayName, boolean updateImage) {
+    private void uploadProfileImageAndSave(String newDisplayName, boolean updateDisplayName) {
+        isUploading = true;
+        btnSave.setEnabled(false);
+        btnSave.setText("Uploading...");
+
+        ImageUploader uploader = new ImageUploader(this);
+        String fileName = "profile_" + immutableLoginId + "_" + System.currentTimeMillis() + ".jpg";
+
+        uploader.uploadImage(selectedImageUri, "profiles", fileName, new ImageUploader.UploadCallback() {
+            @Override
+            public void onSuccess(String cloudImageUrl) {
+                updateProfileInSupabase(newDisplayName, updateDisplayName, true, cloudImageUrl);
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    isUploading = false;
+                    btnSave.setEnabled(true);
+                    btnSave.setText("Save");
+                    Toast.makeText(EditProfileActivity.this, "Failed to upload image", Toast.LENGTH_SHORT).show();
+                    // Fallback: save with local URI
+                    updateProfileInSupabase(newDisplayName, updateDisplayName, true, selectedImageUri.toString());
+                });
+            }
+        });
+    }
+
+    private void updateProfileInSupabase(String newDisplayName, boolean updateDisplayName, boolean updateImage, String imageUrl) {
+        runOnUiThread(() -> {
+            btnSave.setText("Saving...");
+        });
+
         JsonObject updates = new JsonObject();
 
         if (updateDisplayName) {
@@ -246,54 +261,60 @@ public class EditProfileActivity extends AppCompatActivity {
         }
 
         if (updateImage) {
-            String uriToSave = selectedImageUri != null ? selectedImageUri.toString() : null;
-            if (uriToSave != null) {
-                updates.addProperty("profile_image_uri", uriToSave);
-            } else {
-                updates.addProperty("profile_image_uri", ""); // Clear the image
-            }
+            String finalImageUrl = imageUrl != null ? imageUrl : (selectedImageUri != null ? selectedImageUri.toString() : "");
+            updates.addProperty("profile_image_uri", finalImageUrl);
         }
 
         Call<JsonObject> call = supabaseService.updateUser(immutableLoginId, updates);
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.isSuccessful()) {
-                    // Update SharedPreferences on success
-                    SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-                    SharedPreferences.Editor editor = prefs.edit();
+                runOnUiThread(() -> {
+                    isUploading = false;
+                    btnSave.setEnabled(true);
+                    btnSave.setText("Save");
 
-                    if (updateDisplayName) {
-                        editor.putString(PREF_DISPLAY_NAME_KEY, newDisplayName);
-                        currentDisplayName = newDisplayName;
-                    }
+                    if (response.isSuccessful()) {
+                        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
 
-                    if (updateImage) {
-                        String uriToSave = selectedImageUri != null ? selectedImageUri.toString() : null;
-                        if (uriToSave != null) {
-                            editor.putString(PREF_PROFILE_IMAGE_URI, uriToSave);
-                        } else {
-                            editor.remove(PREF_PROFILE_IMAGE_URI);
+                        if (updateDisplayName) {
+                            editor.putString(PREF_DISPLAY_NAME_KEY, newDisplayName);
+                            currentDisplayName = newDisplayName;
                         }
+
+                        if (updateImage) {
+                            String finalImageUrl = imageUrl != null ? imageUrl : (selectedImageUri != null ? selectedImageUri.toString() : null);
+                            if (finalImageUrl != null && !finalImageUrl.isEmpty()) {
+                                editor.putString(PREF_PROFILE_IMAGE_URI, finalImageUrl);
+                            } else {
+                                editor.remove(PREF_PROFILE_IMAGE_URI);
+                            }
+                        }
+
+                        editor.apply();
+
+                        Toast.makeText(EditProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();
+                    } else {
+                        Toast.makeText(EditProfileActivity.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_CANCELED);
+                        finish();
                     }
-
-                    editor.apply();
-
-                    Toast.makeText(EditProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK);
-                    finish();
-                } else {
-                    Toast.makeText(EditProfileActivity.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_CANCELED);
-                    finish();
-                }
+                });
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                Toast.makeText(EditProfileActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                setResult(RESULT_CANCELED);
-                finish();
+                runOnUiThread(() -> {
+                    isUploading = false;
+                    btnSave.setEnabled(true);
+                    btnSave.setText("Save");
+                    Toast.makeText(EditProfileActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    setResult(RESULT_CANCELED);
+                    finish();
+                });
             }
         });
     }
@@ -322,15 +343,9 @@ public class EditProfileActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Utility to check if the current selected URI is the one already saved
-     * @param prefKey The SharedPreferences key where the URI is stored.
-     */
     private boolean isImageUriSaved(String prefKey) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String savedUriString = prefs.getString(prefKey, null);
-
-        // Return true if saved URI exists and is equal to the URI currently in memory
         return savedUriString != null && selectedImageUri != null && savedUriString.equals(selectedImageUri.toString());
     }
 }

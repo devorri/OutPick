@@ -66,21 +66,20 @@ public class SelectableClothingAdapter extends RecyclerView.Adapter<SelectableCl
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ClothingItem item = items.get(position);
-        String uriString = item.getImageUri();
+        String imageUri = item.getImagePath(); // Make sure this is the right getter
 
-        // Load image using Glide
-        if (uriString != null && !uriString.isEmpty()) {
-            File imageFile = new File(uriString);
-            if (imageFile.exists()) {
-                Glide.with(holder.itemView.getContext())
-                        .load(imageFile)
-                        .placeholder(R.drawable.ic_placeholder)
-                        .error(R.drawable.ic_error)
-                        .into(holder.imageView);
-            } else {
-                holder.imageView.setImageResource(R.drawable.ic_error);
-            }
+        // ✅ FIXED: Use Glide to handle both cloud URLs and local files
+        if (imageUri != null && !imageUri.isEmpty()) {
+            // Let Glide automatically detect and handle both:
+            // - Cloud URLs: "https://xyz.supabase.co/storage/v1/object/public/..."
+            // - Local files: "file:///data/user/0/..." or "/data/user/0/..."
+            Glide.with(holder.itemView.getContext())
+                    .load(imageUri)
+                    .placeholder(R.drawable.ic_placeholder)
+                    .error(R.drawable.ic_error)
+                    .into(holder.imageView);
         } else {
+            // Fallback if no image URI
             holder.imageView.setImageResource(R.drawable.ic_error);
         }
 
@@ -107,7 +106,9 @@ public class SelectableClothingAdapter extends RecyclerView.Adapter<SelectableCl
             }
 
             notifyItemChanged(position);
-            listener.onSelectionChanged(new ArrayList<>(selectedItems));
+            if (listener != null) {
+                listener.onSelectionChanged(new ArrayList<>(selectedItems));
+            }
         });
     }
 

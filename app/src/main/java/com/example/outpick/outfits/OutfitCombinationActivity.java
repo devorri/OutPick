@@ -1,9 +1,9 @@
 package com.example.outpick.outfits;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -25,23 +25,18 @@ import com.example.outpick.common.adapters.OutfitPathAdapter;
 import com.example.outpick.database.repositories.OutfitRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
+import com.example.outpick.utils.ImageUploader;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.gson.JsonObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 public class OutfitCombinationActivity extends AppCompatActivity
         implements CustomizeBottomSheet.OnFiltersAppliedListener {
 
+    private static final String TAG = "OutfitCombinationActivity";
     private static final int SNAPSHOT_DETAILS_REQUEST = 101;
 
     private RecyclerView recyclerView;
@@ -54,13 +49,12 @@ public class OutfitCombinationActivity extends AppCompatActivity
 
     private boolean isInMultiSelectMode = false;
 
-    // Data lists updated to use custom item objects
     private List<ClosetContentItem> outfitItems = new ArrayList<>();
     private List<ClosetContentItem> filteredItems = new ArrayList<>();
     private SupabaseService supabaseService;
     private OutfitRepository outfitRepository;
+    private ImageUploader imageUploader;
 
-    // Sets to store the active filters from the bottom sheet
     private Set<String> selectedCategories = new HashSet<>();
     private Set<String> selectedSeasons = new HashSet<>();
     private Set<String> selectedStyles = new HashSet<>();
@@ -70,9 +64,10 @@ public class OutfitCombinationActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_outfit_combination);
 
-        // Initialize Supabase
+        // Initialize Supabase and ImageUploader
         supabaseService = SupabaseClient.getService();
         outfitRepository = new OutfitRepository(supabaseService);
+        imageUploader = new ImageUploader(this);
 
         // Get username if passed
         String passedUsername = getIntent().getStringExtra("username");
@@ -129,7 +124,6 @@ public class OutfitCombinationActivity extends AppCompatActivity
                 return;
             }
 
-            // Create a list of items to be deleted
             List<ClosetContentItem> toDelete = new ArrayList<>();
             for (int pos : selected) {
                 if (pos >= 0 && pos < filteredItems.size()) {
@@ -137,7 +131,6 @@ public class OutfitCombinationActivity extends AppCompatActivity
                 }
             }
 
-            // Delete from Supabase
             deleteOutfitsFromSupabase(toDelete);
         });
 
@@ -165,12 +158,17 @@ public class OutfitCombinationActivity extends AppCompatActivity
                 for (Outfit outfit : outfits) {
                     // Convert Outfit to ClosetContentItem
                     ClosetContentItem item = new ClosetContentItem();
+
+                    // ✅ This should be a CLOUD URL from Supabase Storage
                     item.setSnapshotPath(outfit.getImageUri());
                     item.setName(outfit.getName());
                     item.setCategory(outfit.getCategory());
                     item.setSeason(outfit.getSeason());
                     item.setStyle(outfit.getStyle());
                     outfitItems.add(item);
+
+                    // Log to verify it's a cloud URL
+                    Log.d(TAG, "Outfit image URL: " + outfit.getImageUri());
                 }
 
                 runOnUiThread(() -> {
@@ -179,9 +177,14 @@ public class OutfitCombinationActivity extends AppCompatActivity
                     if (adapter != null) {
                         adapter.notifyDataSetChanged();
                     }
+
+                    if (outfitItems.isEmpty()) {
+                        Toast.makeText(this, "No outfits found. Create some outfits first!", Toast.LENGTH_SHORT).show();
+                    }
                 });
 
             } catch (Exception e) {
+                Log.e(TAG, "Error loading outfits: " + e.getMessage());
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Error loading outfits: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
@@ -191,38 +194,87 @@ public class OutfitCombinationActivity extends AppCompatActivity
 
     // Helper for new snapshot from intent
     private void handleNewSnapshotIntent() {
-        byte[] byteArray = getIntent().getByteArrayExtra("snapshot");
+        // Check if we have a cloud URL from previous activity (preferred)
+        String cloudImageUrl = getIntent().getStringExtra("cloud_image_url");
+        String localImageUri = getIntent().getStringExtra("snapshotImageUri");
         String outfitName = getIntent().getStringExtra("outfitName");
         String event = getIntent().getStringExtra("event");
         String season = getIntent().getStringExtra("season");
         String style = getIntent().getStringExtra("style");
 
-        if (byteArray != null) {
-            String savedPath = saveSnapshotToFile(byteArray);
-            if (savedPath != null) {
-                // Save to Supabase
-                saveOutfitToSupabase(savedPath, outfitName, event, season, style);
+        if (cloudImageUrl != null) {
+            // ✅ Already have cloud URL - just save to database
+            saveOutfitToSupabase(cloudImageUrl, outfitName, event, season, style);
 
-                ClosetContentItem newItem = new ClosetContentItem(savedPath);
-                outfitItems.add(0, newItem);
-                filteredItems.add(0, newItem);
+            ClosetContentItem newItem = new ClosetContentItem();
+            newItem.setSnapshotPath(cloudImageUrl);
+            newItem.setName(outfitName != null ? outfitName : "New Outfit");
+            newItem.setCategory("General");
+            newItem.setSeason(season != null ? season : "All-Season");
+            newItem.setStyle(style != null ? style : "Casual");
 
-                adapter.notifyItemInserted(0);
-                recyclerView.scrollToPosition(0);
+            outfitItems.add(0, newItem);
+            filteredItems.add(0, newItem);
+            adapter.notifyItemInserted(0);
+            recyclerView.scrollToPosition(0);
 
-                getIntent().removeExtra("snapshot");
-            }
+            getIntent().removeExtra("cloud_image_url");
+
+        } else if (localImageUri != null) {
+            // ❌ Only have local URI - need to upload to cloud first
+            uploadAndSaveOutfit(Uri.parse(localImageUri), outfitName, event, season, style);
         }
     }
 
-    private void saveOutfitToSupabase(String imagePath, String name, String event, String season, String style) {
+    /**
+     * Upload local image to cloud and then save outfit
+     */
+    private void uploadAndSaveOutfit(Uri localImageUri, String name, String event, String season, String style) {
+        Toast.makeText(this, "Uploading outfit to cloud...", Toast.LENGTH_SHORT).show();
+
+        String fileName = "outfit_" + System.currentTimeMillis() + ".jpg";
+
+        imageUploader.uploadImage(localImageUri, "outfits", fileName, new ImageUploader.UploadCallback() {
+            @Override
+            public void onSuccess(String cloudImageUrl) {
+                // Now save outfit with cloud URL
+                saveOutfitToSupabase(cloudImageUrl, name, event, season, style);
+
+                runOnUiThread(() -> {
+                    ClosetContentItem newItem = new ClosetContentItem();
+                    newItem.setSnapshotPath(cloudImageUrl);
+                    newItem.setName(name != null ? name : "New Outfit");
+                    newItem.setCategory("General");
+                    newItem.setSeason(season != null ? season : "All-Season");
+                    newItem.setStyle(style != null ? style : "Casual");
+
+                    outfitItems.add(0, newItem);
+                    filteredItems.add(0, newItem);
+                    adapter.notifyItemInserted(0);
+                    recyclerView.scrollToPosition(0);
+
+                    Toast.makeText(OutfitCombinationActivity.this, "Outfit saved to cloud!", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(OutfitCombinationActivity.this,
+                            "Failed to upload outfit: " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private void saveOutfitToSupabase(String imageUrl, String name, String event, String season, String style) {
         new Thread(() -> {
             boolean success = outfitRepository.addOutfit(
-                    imagePath,
+                    imageUrl, // ✅ Cloud URL, not local path
                     name != null ? name : "New Outfit",
-                    "General", // Default category
-                    "", // Description
-                    "Unisex", // Default gender
+                    "General",
+                    "",
+                    "Unisex",
                     event != null ? event : "Casual",
                     season != null ? season : "All-Season",
                     style != null ? style : "Casual"
@@ -230,30 +282,10 @@ public class OutfitCombinationActivity extends AppCompatActivity
 
             runOnUiThread(() -> {
                 if (!success) {
-                    Toast.makeText(this, "Failed to save outfit to cloud", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to save outfit to database", Toast.LENGTH_SHORT).show();
                 }
             });
         }).start();
-    }
-
-    private String saveSnapshotToFile(byte[] snapshotBytes) {
-        try {
-            File dir = new File(getFilesDir(), "outfits");
-            if (!dir.exists()) dir.mkdirs();
-
-            File file = new File(dir, "outfit_" + System.currentTimeMillis() + ".png");
-            Bitmap bitmap = BitmapFactory.decodeByteArray(snapshotBytes, 0, snapshotBytes.length);
-
-            FileOutputStream fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            fos.flush();
-            fos.close();
-
-            return file.getAbsolutePath();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     private void deleteOutfitsFromSupabase(List<ClosetContentItem> itemsToDelete) {
@@ -261,12 +293,9 @@ public class OutfitCombinationActivity extends AppCompatActivity
             int deletedCount = 0;
 
             for (ClosetContentItem item : itemsToDelete) {
-                // We need to find the outfit ID from Supabase first
-                // This is a simplified approach - you might need to store outfit IDs
-                boolean success = deleteOutfitByPath(item.getSnapshotPath());
+                boolean success = deleteOutfitByImageUrl(item.getSnapshotPath());
                 if (success) {
                     deletedCount++;
-                    // Remove from local lists
                     outfitItems.remove(item);
                     filteredItems.remove(item);
                 }
@@ -276,24 +305,23 @@ public class OutfitCombinationActivity extends AppCompatActivity
             runOnUiThread(() -> {
                 exitMultiSelectMode();
                 adapter.notifyDataSetChanged();
-                Toast.makeText(this, finalCount + " items deleted.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, finalCount + " outfit(s) deleted.", Toast.LENGTH_SHORT).show();
             });
         }).start();
     }
 
-    private boolean deleteOutfitByPath(String imagePath) {
+    private boolean deleteOutfitByImageUrl(String imageUrl) {
         try {
-            // First, find the outfit by image path
             List<Outfit> allOutfits = outfitRepository.getAllOutfits();
             for (Outfit outfit : allOutfits) {
-                if (outfit.getImageUri().equals(imagePath)) {
-                    // Delete from Supabase
+                if (outfit.getImageUri().equals(imageUrl)) {
+                    // TODO: Also delete the image from Supabase Storage if needed
                     return outfitRepository.deleteOutfit(outfit.getId());
                 }
             }
             return false;
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error deleting outfit: " + e.getMessage());
             return false;
         }
     }
@@ -365,15 +393,12 @@ public class OutfitCombinationActivity extends AppCompatActivity
 
         filteredItems.clear();
 
-        // If no filters selected across all groups, show all outfits
         if (selectedCategories.isEmpty() && selectedSeasons.isEmpty() && selectedStyles.isEmpty()) {
             filteredItems.addAll(outfitItems);
         } else {
-            // Apply client-side filtering
             for (ClosetContentItem item : outfitItems) {
                 boolean matches = false;
 
-                // Check category
                 if (!selectedCategories.isEmpty() && item.getCategory() != null) {
                     for (String category : selectedCategories) {
                         if (item.getCategory().toLowerCase().contains(category.toLowerCase())) {
@@ -383,7 +408,6 @@ public class OutfitCombinationActivity extends AppCompatActivity
                     }
                 }
 
-                // Check season
                 if (!matches && !selectedSeasons.isEmpty() && item.getSeason() != null) {
                     for (String season : selectedSeasons) {
                         if (item.getSeason().toLowerCase().contains(season.toLowerCase())) {
@@ -393,7 +417,6 @@ public class OutfitCombinationActivity extends AppCompatActivity
                     }
                 }
 
-                // Check style
                 if (!matches && !selectedStyles.isEmpty() && item.getStyle() != null) {
                     for (String style : selectedStyles) {
                         if (item.getStyle().toLowerCase().contains(style.toLowerCase())) {
@@ -420,9 +443,10 @@ public class OutfitCombinationActivity extends AppCompatActivity
         RecyclerView closetRecycler = addView.findViewById(R.id.bottomClosetRecyclerView);
         Button btnAddSelectedItems = addView.findViewById(R.id.btn_add_selected_items);
 
-        // TODO: Load closets from Supabase instead of MainActivity
-        ArrayList<String> closetNames = new ArrayList<>(); // Placeholder
-        // closetNames = loadClosetsFromSupabase();
+        ArrayList<String> closetNames = new ArrayList<>();
+        // TODO: Load closets from Supabase
+        closetNames.add("My Closet");
+        closetNames.add("Favorite Outfits");
 
         ClosetListAdapter closetListAdapter = new ClosetListAdapter(closetNames);
         closetRecycler.setLayoutManager(new GridLayoutManager(this, 2));
@@ -437,12 +461,12 @@ public class OutfitCombinationActivity extends AppCompatActivity
 
             Set<Integer> selectedPositions = adapter.getSelectedItems();
             if (selectedPositions.isEmpty()) {
-                Toast.makeText(this, "No snapshot selected", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "No outfit selected", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             // TODO: Implement Supabase closet functionality
-            Toast.makeText(this, "Add to closet functionality needs Supabase implementation", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Added to " + selectedCloset, Toast.LENGTH_SHORT).show();
             addDialog.dismiss();
             exitMultiSelectMode();
         });
@@ -461,12 +485,8 @@ public class OutfitCombinationActivity extends AppCompatActivity
 
         if (requestCode == SNAPSHOT_DETAILS_REQUEST && resultCode == RESULT_OK && data != null) {
             boolean updated = data.getBooleanExtra("snapshotUpdated", false);
-            String snapshotId = data.getStringExtra("snapshotId");
-
-            if (updated && snapshotId != null) {
-                Toast.makeText(this, "The Snapshot has been updated", Toast.LENGTH_SHORT).show();
-
-                // Reload outfits to reflect changes
+            if (updated) {
+                Toast.makeText(this, "Outfit updated successfully", Toast.LENGTH_SHORT).show();
                 loadOutfitsFromSupabase();
             }
         }

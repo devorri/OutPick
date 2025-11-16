@@ -4,7 +4,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.view.View; // Import View for View.GONE
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -16,7 +16,6 @@ import java.io.File;
 public class SuggestionPreviewImageActivity extends AppCompatActivity {
 
     private ImageView ivPreviewImage;
-    // Keep reference to category view for initialization and hiding
     private TextView tvPreviewName, tvPreviewCategory, tvPreviewEvent, tvPreviewDate, tvPreviewAction;
 
     @Override
@@ -27,10 +26,7 @@ public class SuggestionPreviewImageActivity extends AppCompatActivity {
         // --- Initialize views ---
         ivPreviewImage = findViewById(R.id.ivPreviewImage);
         tvPreviewName = findViewById(R.id.tvPreviewName);
-
-        // Initialize tvPreviewCategory (Safety step: must be initialized if present in XML)
         tvPreviewCategory = findViewById(R.id.tvPreviewCategory);
-
         tvPreviewEvent = findViewById(R.id.tvPreviewEvent);
         tvPreviewDate = findViewById(R.id.tvPreviewDate);
         tvPreviewAction = findViewById(R.id.tvPreviewAction);
@@ -51,35 +47,89 @@ public class SuggestionPreviewImageActivity extends AppCompatActivity {
 
         // --- HIDE CATEGORY LOGIC ---
         if (tvPreviewCategory != null) {
-            // Set the text, but then hide the entire TextView container
             tvPreviewCategory.setText(category != null && !category.isEmpty() ? category : "Unknown Category");
-            tvPreviewCategory.setVisibility(View.GONE); // Crucial line to hide the view
+            tvPreviewCategory.setVisibility(View.GONE);
         }
 
         tvPreviewEvent.setText(event != null && !event.isEmpty() ? event : "Unknown Event");
         tvPreviewDate.setText(date != null && !date.isEmpty() ? date : "Unknown Date");
         tvPreviewAction.setText(action != null && !action.isEmpty() ? action : "Unknown Action");
 
-        // --- Load image with Glide ---
+        // --- Load image with Glide - UPDATED FOR CLOUD ---
         if (imageUri != null && !imageUri.isEmpty()) {
-            Uri uriToLoad;
-
-            if (imageUri.startsWith("content://") ||
-                    imageUri.startsWith("file://") ||
-                    imageUri.startsWith("android.resource://")) {
-                uriToLoad = Uri.parse(imageUri);
-            } else {
-                File file = new File(imageUri);
-                uriToLoad = Uri.fromFile(file);
-            }
-
-            Glide.with(this)
-                    .load(uriToLoad)
-                    .placeholder(R.drawable.placeholder)   // Ensure drawable exists
-                    .error(R.drawable.error_image)         // Fallback image
-                    .into(ivPreviewImage);
+            loadImageWithGlide(imageUri);
         } else {
             ivPreviewImage.setImageResource(R.drawable.placeholder);
+        }
+    }
+
+    private void loadImageWithGlide(String imageUri) {
+        // Check if it's a cloud URL (Supabase Storage URL)
+        if (isCloudUrl(imageUri)) {
+            // It's a cloud URL - load directly
+            Glide.with(this)
+                    .load(imageUri) // Direct URL from Supabase Storage
+                    .placeholder(R.drawable.placeholder)
+                    .error(R.drawable.error_image)
+                    .into(ivPreviewImage);
+        }
+        // Check if it's a local file path (legacy support)
+        else if (imageUri.startsWith("/") || imageUri.startsWith("file://")) {
+            File file = new File(imageUri.replace("file://", ""));
+            if (file.exists()) {
+                Glide.with(this)
+                        .load(file)
+                        .placeholder(R.drawable.placeholder)
+                        .error(R.drawable.error_image)
+                        .into(ivPreviewImage);
+            } else {
+                ivPreviewImage.setImageResource(R.drawable.error_image);
+            }
+        }
+        // Check if it's a content URI (from gallery/camera)
+        else if (imageUri.startsWith("content://")) {
+            Glide.with(this)
+                    .load(Uri.parse(imageUri))
+                    .placeholder(R.drawable.placeholder)
+                    .error(R.drawable.error_image)
+                    .into(ivPreviewImage);
+        }
+        // Check if it's an android resource
+        else if (imageUri.startsWith("android.resource://")) {
+            Glide.with(this)
+                    .load(Uri.parse(imageUri))
+                    .placeholder(R.drawable.placeholder)
+                    .error(R.drawable.error_image)
+                    .into(ivPreviewImage);
+        }
+        // Unknown format - try to load as URL (might be cloud URL without https)
+        else {
+            // Try to load as direct URL
+            Glide.with(this)
+                    .load(imageUri)
+                    .placeholder(R.drawable.placeholder)
+                    .error(R.drawable.error_image)
+                    .into(ivPreviewImage);
+        }
+    }
+
+    private boolean isCloudUrl(String imageUri) {
+        // Check if it's a Supabase Storage URL or any cloud URL
+        return imageUri != null && (
+                imageUri.startsWith("https://") ||
+                        imageUri.startsWith("http://") ||
+                        imageUri.contains("supabase.co/storage") ||
+                        imageUri.contains("xaekxlyllgjxneyhurfp.supabase.co") // Your project URL
+        );
+    }
+
+    // Helper method to extract just the filename for debugging
+    private String getFilenameFromUrl(String url) {
+        if (url == null) return "null";
+        try {
+            return url.substring(url.lastIndexOf('/') + 1);
+        } catch (Exception e) {
+            return url;
         }
     }
 }

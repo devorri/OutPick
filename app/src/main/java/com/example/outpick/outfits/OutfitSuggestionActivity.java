@@ -29,6 +29,7 @@ import com.example.outpick.common.BaseDrawerActivity;
 import com.example.outpick.common.PreviewImageActivity;
 import com.example.outpick.common.adapters.OutfitSuggestionAdapter;
 import com.example.outpick.database.repositories.OutfitRepository;
+import com.example.outpick.database.repositories.UserOutfitRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -58,12 +59,13 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
     private Uri photoUri;
     private String username;
     private String userGender = "";
-    private String currentUserId = ""; // Changed to String for Supabase UUID
+    private String currentUserId = "";
 
     private RecyclerView recyclerViewOutfits;
     private OutfitSuggestionAdapter adapter;
     private SupabaseService supabaseService;
     private OutfitRepository outfitRepository;
+    private UserOutfitRepository userOutfitRepository;
 
     // Persistent filter selections
     private Set<String> lastSelectedCategories = new HashSet<>();
@@ -81,6 +83,7 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
         // --- Initialize Supabase ---
         supabaseService = SupabaseClient.getService();
         outfitRepository = new OutfitRepository(supabaseService);
+        userOutfitRepository = new UserOutfitRepository(supabaseService, outfitRepository);
 
         // --- Get username and User ID ---
         username = getImmutableLoginId();
@@ -194,7 +197,14 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
     private void loadOutfitsFromSupabase() {
         new Thread(() -> {
             try {
-                List<Outfit> allOutfits = outfitRepository.getAllOutfits();
+                // ✅ FIXED: Get ONLY user's assigned outfits
+                List<Outfit> userOutfits;
+                if (currentUserId.isEmpty()) {
+                    userOutfits = new ArrayList<>(); // Empty if no user ID
+                } else {
+                    userOutfits = userOutfitRepository.getOutfitsForUser(currentUserId);
+                }
+
                 runOnUiThread(() -> {
                     // Store outfits for filtering
                     applyLastFiltersInternally();
@@ -232,7 +242,14 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
     private void applyLastFiltersInternally() {
         new Thread(() -> {
             try {
-                List<Outfit> allOutfits = outfitRepository.getAllOutfits();
+                // ✅ FIXED: Get ONLY user's assigned outfits
+                List<Outfit> userOutfits;
+                if (currentUserId.isEmpty()) {
+                    userOutfits = new ArrayList<>(); // Empty if no user ID
+                } else {
+                    userOutfits = userOutfitRepository.getOutfitsForUser(currentUserId);
+                }
+
                 List<Outfit> filtered = new ArrayList<>();
 
                 String normalizedUserGender = userGender != null ? userGender.trim().toLowerCase() : "";
@@ -245,7 +262,7 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
 
                 boolean canCheckFavorites = !currentUserId.isEmpty();
 
-                for (Outfit o : allOutfits) {
+                for (Outfit o : userOutfits) {
                     if (o.getImageUri() == null || o.getImageUri().trim().isEmpty()) continue;
                     if (o.getGender() == null) continue;
 
@@ -292,22 +309,19 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
     // ---------------- RECYCLERVIEW UPDATE ----------------
     private void updateRecyclerView(List<Outfit> outfits) {
         if (adapter == null) {
-            // ✅ FIX: Use the updated constructor with String currentUserId and SupabaseService
             adapter = new OutfitSuggestionAdapter(
                     this,
                     outfits,
                     this::openOutfitDetails,
                     currentUserId,
-                    supabaseService // Add this parameter
+                    supabaseService
             );
             recyclerViewOutfits.setAdapter(adapter);
         } else {
             adapter.updateList(outfits);
         }
 
-        // ✅ FIX: Handle the missing tvNoOutfits gracefully
         try {
-            // Try to find the TextView by ID
             TextView tvNoOutfits = findViewById(R.id.tvNoOutfits);
             if (tvNoOutfits != null) {
                 if (outfits.isEmpty()) {
@@ -319,14 +333,12 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
                     recyclerViewOutfits.setVisibility(View.VISIBLE);
                 }
             } else {
-                // If tvNoOutfits doesn't exist, just show/hide the recyclerView
                 recyclerViewOutfits.setVisibility(outfits.isEmpty() ? View.GONE : View.VISIBLE);
                 if (outfits.isEmpty()) {
                     Toast.makeText(this, "No outfits found", Toast.LENGTH_SHORT).show();
                 }
             }
         } catch (Exception e) {
-            // Fallback if anything goes wrong
             recyclerViewOutfits.setVisibility(outfits.isEmpty() ? View.GONE : View.VISIBLE);
             if (outfits.isEmpty()) {
                 Toast.makeText(this, "No outfits found", Toast.LENGTH_SHORT).show();
