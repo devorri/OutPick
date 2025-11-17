@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.outpick.R;
@@ -87,28 +89,22 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
                 break;
         }
 
-        // ✅ Delete user
+        // ✅ Delete user - FIXED VERSION
         holder.btnDelete.setOnClickListener(v -> {
             if (supabaseService != null && !userId.isEmpty()) {
-                Call<Void> call = supabaseService.deleteUser(userId);
-                call.enqueue(new Callback<Void>() {
-                    @Override
-                    public void onResponse(Call<Void> call, Response<Void> response) {
-                        if (response.isSuccessful()) {
-                            Toast.makeText(context, "User deleted permanently", Toast.LENGTH_SHORT).show();
-                            if (refreshCallback != null) refreshCallback.run();
-                        } else {
-                            Toast.makeText(context, "Failed to delete user", Toast.LENGTH_SHORT).show();
-                        }
-                    }
+                Log.d("AdminUserAdapter", "Attempting to delete user ID: " + userId);
 
-                    @Override
-                    public void onFailure(Call<Void> call, Throwable t) {
-                        Toast.makeText(context, "Error deleting user: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                // Show confirmation dialog
+                new AlertDialog.Builder(context)
+                        .setTitle("Delete User")
+                        .setMessage("Are you sure you want to delete this user? This action cannot be undone.")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            performDeleteUser(userId, holder);
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
             } else {
-                Toast.makeText(context, "Cannot delete user: Service not available", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Cannot delete user: Invalid user data", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -138,6 +134,60 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
                 context.startActivity(intent);
             } else {
                 Toast.makeText(context, "Cannot create outfit: User information incomplete", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void performDeleteUser(String userId, UserViewHolder holder) {
+        Call<Void> call = supabaseService.deleteUser(userId);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                Log.d("AdminUserAdapter", "Delete response code: " + response.code());
+
+                if (response.isSuccessful()) {
+                    Log.d("AdminUserAdapter", "User deleted successfully");
+                    Toast.makeText(context, "User deleted successfully", Toast.LENGTH_SHORT).show();
+
+                    // Remove from local list and update UI
+                    int currentPosition = holder.getAdapterPosition();
+                    if (currentPosition != RecyclerView.NO_POSITION) {
+                        userList.remove(currentPosition);
+                        notifyItemRemoved(currentPosition);
+                        notifyItemRangeChanged(currentPosition, userList.size());
+                    }
+
+                    // Refresh the list
+                    if (refreshCallback != null) refreshCallback.run();
+                } else {
+                    String errorMessage = "Failed to delete user. Error: " + response.code();
+                    Log.e("AdminUserAdapter", errorMessage);
+
+                    // Try to read error body for more details
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            Log.e("AdminUserAdapter", "Error response: " + errorBody);
+
+                            // Check for common Supabase errors
+                            if (errorBody.contains("foreign key constraint")) {
+                                errorMessage = "Cannot delete user: User has related records (outfits, favorites, etc.)";
+                            } else if (errorBody.contains("RLS")) {
+                                errorMessage = "Cannot delete user: Permission denied (check RLS policies)";
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e("AdminUserAdapter", "Error reading error body: " + e.getMessage());
+                    }
+
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("AdminUserAdapter", "Delete network error: " + t.getMessage());
+                Toast.makeText(context, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }

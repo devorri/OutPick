@@ -59,9 +59,8 @@ public interface SupabaseService {
             "Prefer: return=representation"
     })
     @POST("users")
-    Call<List<JsonObject>> insertUser(@Body JsonObject user); // ✅ FIXED
+    Call<List<JsonObject>> insertUser(@Body JsonObject user);
 
-    // ✅ RELIABLE: Using URL encoding for proper Supabase filter syntax
     @Headers({
             "Content-Type: application/json",
             "Prefer: return=representation"
@@ -69,7 +68,6 @@ public interface SupabaseService {
     @PATCH
     Call<List<JsonObject>> updateUserById(@Url String url, @Body JsonObject updates);
 
-    // ✅ ADDED BACK: Method for updating by username
     @Headers({
             "Content-Type: application/json",
             "Prefer: return=representation"
@@ -77,10 +75,11 @@ public interface SupabaseService {
     @PATCH("users")
     Call<List<JsonObject>> updateUser(@Query("username") String username, @Body JsonObject updates);
 
-    @DELETE("users")
-    Call<Void> deleteUser(@Query("id") String userId);
+    // FIXED DELETE METHOD - Use proper Supabase filter syntax
+    @Headers("Prefer: return=minimal")
+    @DELETE("users?id=eq.{id}")
+    Call<Void> deleteUser(@Path("id") String userId);
 
-    // RPC function for getting user with password (optional)
     @Headers("Content-Type: application/json")
     @POST("rpc/get_user_with_password")
     Call<JsonObject> getUserWithPassword(@Body JsonObject params);
@@ -103,7 +102,7 @@ public interface SupabaseService {
             "Prefer: return=representation"
     })
     @POST("outfits")
-    Call<List<JsonObject>> insertOutfit(@Body JsonObject outfit); // ✅ FIXED
+    Call<List<JsonObject>> insertOutfit(@Body JsonObject outfit);
 
     @Headers({
             "Content-Type: application/json",
@@ -112,8 +111,10 @@ public interface SupabaseService {
     @PATCH
     Call<List<JsonObject>> updateOutfit(@Url String url, @Body JsonObject updates);
 
-    @DELETE("outfits")
-    Call<Void> deleteOutfit(@Query("id") String outfitId);
+    // FIXED OUTFIT DELETE
+    @Headers("Prefer: return=minimal")
+    @DELETE("outfits?id=eq.{id}")
+    Call<Void> deleteOutfit(@Path("id") String outfitId);
 
     // ================= USER OUTFITS =================
     @GET("user_outfits")
@@ -124,10 +125,12 @@ public interface SupabaseService {
             "Prefer: return=representation"
     })
     @POST("user_outfits")
-    Call<List<JsonObject>> assignOutfitToUser(@Body JsonObject assignment); // ✅ FIXED
+    Call<List<JsonObject>> assignOutfitToUser(@Body JsonObject assignment);
 
-    @DELETE("user_outfits")
-    Call<Void> removeOutfitFromUser(@Query("user_id") String userId, @Query("outfit_id") String outfitId);
+    // FIXED USER OUTFIT DELETE
+    @Headers("Prefer: return=minimal")
+    @DELETE("user_outfits?user_id=eq.{userId}&outfit_id=eq.{outfitId}")
+    Call<Void> removeOutfitFromUser(@Path("userId") String userId, @Path("outfitId") String outfitId);
 
     // ================= USER FAVORITES =================
     @GET("user_favorites")
@@ -141,16 +144,17 @@ public interface SupabaseService {
             "Prefer: return=representation"
     })
     @POST("user_favorites")
-    Call<List<JsonObject>> addFavorite(@Body JsonObject favorite); // ✅ FIXED
+    Call<List<JsonObject>> addFavorite(@Body JsonObject favorite);
 
-    @DELETE("user_favorites")
-    Call<Void> removeFavorite(@Query("user_id") String userId, @Query("outfit_id") String outfitId);
+    // FIXED FAVORITE DELETE
+    @Headers("Prefer: return=minimal")
+    @DELETE("user_favorites?user_id=eq.{userId}&outfit_id=eq.{outfitId}")
+    Call<Void> removeFavorite(@Path("userId") String userId, @Path("outfitId") String outfitId);
 
     // ================= CLOTHING =================
     @GET("clothing")
     Call<List<JsonObject>> getClothing();
 
-    // ✅ ADDED: Get clothing by user ID
     @GET("clothing")
     Call<List<JsonObject>> getClothingByUserId(@Query("user_id") String userId);
 
@@ -168,7 +172,7 @@ public interface SupabaseService {
             "Prefer: return=representation"
     })
     @POST("clothing")
-    Call<List<JsonObject>> insertClothing(@Body JsonObject clothing); // ✅ FIXED
+    Call<List<JsonObject>> insertClothing(@Body JsonObject clothing);
 
     @Headers({
             "Content-Type: application/json",
@@ -177,8 +181,10 @@ public interface SupabaseService {
     @PATCH
     Call<List<JsonObject>> updateClothing(@Url String url, @Body JsonObject updates);
 
-    @DELETE("clothing")
-    Call<Void> deleteClothing(@Query("id") String clothingId);
+    // FIXED CLOTHING DELETE
+    @Headers("Prefer: return=minimal")
+    @DELETE("clothing?id=eq.{id}")
+    Call<Void> deleteClothing(@Path("id") String clothingId);
 
     // ================= CLOSETS =================
     @GET("closets")
@@ -189,10 +195,12 @@ public interface SupabaseService {
             "Prefer: return=representation"
     })
     @POST("closets")
-    Call<List<JsonObject>> insertCloset(@Body JsonObject closet); // ✅ FIXED
+    Call<List<JsonObject>> insertCloset(@Body JsonObject closet);
 
-    @DELETE("closets")
-    Call<Void> deleteCloset(@Query("id") String closetId);
+    // FIXED CLOSET DELETE
+    @Headers("Prefer: return=minimal")
+    @DELETE("closets?id=eq.{id}")
+    Call<Void> deleteCloset(@Path("id") String closetId);
 
     // ================= OUTFIT HISTORY =================
     @GET("outfit_history")
@@ -206,7 +214,7 @@ public interface SupabaseService {
             "Prefer: return=representation"
     })
     @POST("outfit_history")
-    Call<List<JsonObject>> insertOutfitHistory(@Body JsonObject history); // ✅ FIXED
+    Call<List<JsonObject>> insertOutfitHistory(@Body JsonObject history);
 
     @Headers({
             "Content-Type: application/json",
@@ -215,11 +223,28 @@ public interface SupabaseService {
     @PATCH
     Call<List<JsonObject>> updateOutfitHistory(@Url String url, @Body JsonObject updates);
 
-    @DELETE("outfit_history")
-    Call<Void> deleteOutfitHistory(@Query("id") String historyId);
+    // FIXED HISTORY DELETE
+    @Headers("Prefer: return=minimal")
+    @DELETE("outfit_history?id=eq.{id}")
+    Call<Void> deleteOutfitHistory(@Path("id") String historyId);
 
     @GET("outfit_history")
     Call<List<JsonObject>> checkOutfitInHistory(@Query("outfit_ref_id") String outfitRefId, @Query("action_taken") String actionTaken);
+
+    // ================= CLOSET SNAPSHOTS =================
+    @GET("closet_snapshots")
+    Call<List<JsonObject>> getClosetSnapshots(@Query("closet_id") String closetId);
+
+    @Headers({
+            "Content-Type: application/json",
+            "Prefer: return=representation"
+    })
+    @POST("closet_snapshots")
+    Call<List<JsonObject>> addSnapshotToCloset(@Body JsonObject snapshot);
+
+    @Headers("Prefer: return=minimal")
+    @DELETE("closet_snapshots?id=eq.{snapshotId}")
+    Call<Void> removeSnapshotFromCloset(@Path("snapshotId") String snapshotId);
 
     // ================= ADVANCED FILTERING =================
     @GET("outfits")

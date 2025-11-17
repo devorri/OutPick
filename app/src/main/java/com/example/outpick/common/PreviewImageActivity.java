@@ -153,27 +153,56 @@ public class PreviewImageActivity extends AppCompatActivity {
     }
 
     private void loadImageFromIntent() {
-        Uri parcelableUri = getIntent().getParcelableExtra("imageUri");
-        String imageUriStr = getIntent().getStringExtra("imageUri");
-        if (imageUriStr == null) imageUriStr = getIntent().getStringExtra("selected_image_uri");
+        // Debug: Log all intent extras
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            for (String key : extras.keySet()) {
+                Log.d(TAG, "Intent extra - " + key + ": " + extras.get(key));
+            }
+        }
+
+        // Check if we have a cloud URL (image already uploaded)
+        String cloudImageUrl = getIntent().getStringExtra("cloud_image_url");
+        String localImageUri = getIntent().getStringExtra("local_image_uri");
 
         try {
-            if (parcelableUri != null) {
-                selectedImageUri = parcelableUri;
-            } else if (imageUriStr != null) {
-                selectedImageUri = Uri.parse(imageUriStr);
+            // Priority 1: Use cloud URL if available (image already uploaded)
+            if (cloudImageUrl != null && !cloudImageUrl.isEmpty()) {
+                Log.d(TAG, "Loading from cloud URL: " + cloudImageUrl);
+                selectedImageUri = Uri.parse(cloudImageUrl);
+            }
+            // Priority 2: Use local URI as fallback
+            else if (localImageUri != null && !localImageUri.isEmpty()) {
+                Log.d(TAG, "Loading from local URI: " + localImageUri);
+                selectedImageUri = Uri.parse(localImageUri);
+            }
+            // Priority 3: Other possible parameter names (backward compatibility)
+            else {
+                Uri parcelableUri = getIntent().getParcelableExtra("imageUri");
+                String imageUriStr = getIntent().getStringExtra("imageUri");
+                String selectedImageUriStr = getIntent().getStringExtra("selected_image_uri");
+
+                if (parcelableUri != null) {
+                    selectedImageUri = parcelableUri;
+                } else if (imageUriStr != null && !imageUriStr.isEmpty()) {
+                    selectedImageUri = Uri.parse(imageUriStr);
+                } else if (selectedImageUriStr != null && !selectedImageUriStr.isEmpty()) {
+                    selectedImageUri = Uri.parse(selectedImageUriStr);
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "Error loading image", e);
         }
 
         if (selectedImageUri != null) {
+            Log.d(TAG, "Successfully loaded image URI: " + selectedImageUri.toString());
             Glide.with(this)
                     .load(selectedImageUri)
                     .placeholder(R.drawable.ic_placeholder)
                     .error(R.drawable.ic_error)
                     .into(previewImageView);
         } else {
+            Log.e(TAG, "No image found in any parameter");
             Toast.makeText(this, "No image found", Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -379,33 +408,45 @@ public class PreviewImageActivity extends AppCompatActivity {
         saveButton.setEnabled(false);
         saveButton.setText("Uploading...");
 
-        // Generate a unique filename
-        String fileName = "clothing_" + category.toLowerCase().replace(">", "_") +
-                "_" + System.currentTimeMillis() + ".png";
+        // Check if we already have a cloud URL (image was already uploaded)
+        String cloudImageUrl = getIntent().getStringExtra("cloud_image_url");
 
-        ImageUploader uploader = new ImageUploader(this);
+        if (cloudImageUrl != null && !cloudImageUrl.isEmpty()) {
+            Log.d(TAG, "Image already uploaded to cloud, using existing URL: " + cloudImageUrl);
+            // Image was already uploaded in CreateOutfitActivity, just save to database
+            saveItemToSupabase(category, season, occasion, cloudImageUrl);
+        } else {
+            // Image needs to be uploaded (coming from ItemsAddingActivity or other sources)
+            Log.d(TAG, "Uploading image to cloud...");
 
-        // Use the processed image if available, otherwise use original
-        Uri imageToUpload = processedImagePath != null ? Uri.fromFile(new File(processedImagePath)) : selectedImageUri;
+            // Generate a unique filename
+            String fileName = "clothing_" + category.toLowerCase().replace(">", "_") +
+                    "_" + System.currentTimeMillis() + ".png";
 
-        uploader.uploadImage(imageToUpload, "clothing", fileName, new ImageUploader.UploadCallback() {
-            @Override
-            public void onSuccess(String cloudImageUrl) {
-                // Image uploaded successfully, now save clothing item with cloud URL
-                saveItemToSupabase(category, season, occasion, cloudImageUrl);
-            }
+            ImageUploader uploader = new ImageUploader(this);
 
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE);
-                    saveButton.setEnabled(true);
-                    saveButton.setText("Save");
-                    Toast.makeText(PreviewImageActivity.this,
-                            "Failed to upload image: " + error, Toast.LENGTH_LONG).show();
-                });
-            }
-        });
+            // Use the processed image if available, otherwise use original
+            Uri imageToUpload = processedImagePath != null ? Uri.fromFile(new File(processedImagePath)) : selectedImageUri;
+
+            uploader.uploadImage(imageToUpload, "clothing", fileName, new ImageUploader.UploadCallback() {
+                @Override
+                public void onSuccess(String newCloudImageUrl) {
+                    // Image uploaded successfully, now save clothing item with cloud URL
+                    saveItemToSupabase(category, season, occasion, newCloudImageUrl);
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        saveButton.setEnabled(true);
+                        saveButton.setText("Save");
+                        Toast.makeText(PreviewImageActivity.this,
+                                "Failed to upload image: " + error, Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+        }
     }
 
     private void saveItemToSupabase(String category, String season, String occasion, String cloudImageUrl) {

@@ -408,7 +408,7 @@ public class ItemsAddingActivity extends AppCompatActivity {
 
         String fileName = "clothing_item_" + System.currentTimeMillis() + ".jpg";
 
-        imageUploader.uploadImage(imageUri, "clothing", fileName, new ImageUploader.UploadCallback() {
+        imageUploader.uploadImage(imageUri, "clothes", fileName, new ImageUploader.UploadCallback() {
             @Override
             public void onSuccess(String publicImageUrl) {
                 runOnUiThread(() -> {

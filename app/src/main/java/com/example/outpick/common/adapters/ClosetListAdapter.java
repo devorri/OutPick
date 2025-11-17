@@ -47,6 +47,10 @@ public class ClosetListAdapter extends RecyclerView.Adapter<ClosetListAdapter.Vi
         return (selectedPosition != -1) ? closetNames.get(selectedPosition) : null;
     }
 
+    public int getSelectedPosition() {
+        return selectedPosition;
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         CheckedTextView checkedTextView;
 

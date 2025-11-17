@@ -1,6 +1,8 @@
 package com.example.outpick.common.adapters;
 
 import android.content.Context;
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +26,7 @@ public class ClothingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private static final int VIEW_TYPE_ADD = 0;
     private static final int VIEW_TYPE_CLOTHING = 1;
+    private static final String TAG = "ClothingAdapter";
 
     private final Context context;
     private ArrayList<ClothingItem> items = new ArrayList<>();
@@ -139,18 +142,59 @@ public class ClothingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         public void bind(ClothingItem item, int adapterPosition) {
             String uriString = item.getImageUri();
-            File imageFile = new File(uriString);
 
-            if (uriString != null && !uriString.isEmpty() && imageFile.exists()) {
-                Glide.with(context)
-                        .load(imageFile)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .skipMemoryCache(true)
-                        .placeholder(R.drawable.ic_placeholder)
-                        .error(R.drawable.ic_error)
-                        .into(imageView);
+            // ✅ DEBUG: Log what we're trying to load
+            Log.d(TAG, "Loading image for: " + item.getName() + " | URI: " + uriString);
+
+            if (uriString != null && !uriString.isEmpty()) {
+                // ✅ Check if it's a cloud URL (starts with http/https)
+                if (uriString.startsWith("http")) {
+                    // Load from Supabase Storage URL
+                    Log.d(TAG, "✅ Loading cloud image: " + uriString);
+
+                    Glide.with(context)
+                            .load(uriString)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .placeholder(R.drawable.ic_placeholder)
+                            .error(R.drawable.ic_error)
+                            .into(imageView);
+
+                } else {
+                    // Check if it's a local file that exists
+                    File imageFile = new File(uriString);
+                    if (imageFile.exists()) {
+                        // Load from local file
+                        Log.d(TAG, "✅ Loading local file: " + uriString);
+
+                        Glide.with(context)
+                                .load(imageFile)
+                                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                                .skipMemoryCache(true)
+                                .placeholder(R.drawable.ic_placeholder)
+                                .error(R.drawable.ic_error)
+                                .into(imageView);
+                    } else {
+                        // Try loading as URI (for content:// URIs)
+                        try {
+                            Log.d(TAG, "🔄 Trying to load as URI: " + uriString);
+
+                            Uri uri = Uri.parse(uriString);
+                            Glide.with(context)
+                                    .load(uri)
+                                    .placeholder(R.drawable.ic_placeholder)
+                                    .error(R.drawable.ic_error)
+                                    .into(imageView);
+                        } catch (Exception e) {
+                            // Fallback to error image
+                            Log.e(TAG, "❌ Failed to load image: " + uriString, e);
+                            imageView.setImageResource(R.drawable.ic_error);
+                        }
+                    }
+                }
             } else {
-                imageView.setImageResource(R.drawable.ic_error);
+                // No image available
+                Log.w(TAG, "⚠️ No image URI for item: " + item.getName());
+                imageView.setImageResource(R.drawable.ic_placeholder);
             }
 
             checkBox.setVisibility(showCheckboxes ? View.VISIBLE : View.GONE);

@@ -2,8 +2,10 @@ package com.example.outpick.outfits;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -11,23 +13,37 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.outpick.database.models.ClothingItem;
 import com.example.outpick.closet.ItemsAddingActivity;
 import com.example.outpick.R;
 import com.example.outpick.common.SpecifyDetailsActivity;
+import com.example.outpick.common.adapters.ClothingAdapter;
+import com.example.outpick.database.repositories.ClothingRepository;
+import com.example.outpick.database.supabase.SupabaseClient;
+import com.example.outpick.database.supabase.SupabaseService;
 import com.example.outpick.utils.ImageUploader;
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.JsonObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class OutfitCreationActivity extends AppCompatActivity {
+
+    private static final String TAG = "OutfitCreationActivity";
 
     private ImageView backArrow;
     private MaterialButton addItemBtn;
@@ -44,14 +60,29 @@ public class OutfitCreationActivity extends AppCompatActivity {
     private static final int REQUEST_ADD_MORE_ITEMS = 101;
     private String username = "Guest";
     private ImageUploader imageUploader;
+    private SupabaseService supabaseService;
+    private ClothingRepository clothingRepository;
+    private String currentUserId;
+
+    // Closet browser elements
+    private RecyclerView closetRecyclerView;
+    private ClothingAdapter clothingAdapter;
+    private List<ClothingItem> userClothingItems = new ArrayList<>();
+    private LinearLayout closetBrowserLayout;
+    private TextView closetTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_outfit_creation);
 
-        // Initialize ImageUploader for cloud functionality
+        // Initialize services
         imageUploader = new ImageUploader(this);
+        supabaseService = SupabaseClient.getService();
+        clothingRepository = ClothingRepository.getInstance(supabaseService); // ✅ ADD THIS
+
+        // Get current user ID
+        currentUserId = getCurrentUserId();
 
         String passedUsername = getIntent().getStringExtra("username");
         if (passedUsername != null && !passedUsername.trim().isEmpty()) {
@@ -68,26 +99,30 @@ public class OutfitCreationActivity extends AppCompatActivity {
         btnZoomOut = findViewById(R.id.btnZoomOut);
         btnClose = findViewById(R.id.btnClose);
 
+        // Closet browser elements
+        closetRecyclerView = findViewById(R.id.closetRecyclerView);
+        closetBrowserLayout = findViewById(R.id.closetBrowserLayout);
+        closetTitle = findViewById(R.id.closetTitle);
+
         btnAddMoreItems.setVisibility(View.GONE);
         globalControlButtons.setVisibility(View.GONE);
+        closetBrowserLayout.setVisibility(View.VISIBLE);
+
+        // Setup closet browser
+        setupClosetBrowser();
 
         backArrow.setOnClickListener(v -> onBackPressed());
 
         addItemBtn.setOnClickListener(v -> {
             if ("Add Item".equals(addItemBtn.getText().toString())) {
-                Intent intent = new Intent(this, ItemsAddingActivity.class);
-                intent.putExtra("username", username);
-                startActivity(intent);
+                closetBrowserLayout.setVisibility(View.VISIBLE);
             } else {
-                goToSpecifyDetails(); // send snapshot to SpecifyDetailsActivity
+                goToSpecifyDetails();
             }
         });
 
         btnAddMoreItems.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ItemsAddingActivity.class);
-            intent.putExtra("isAddingMore", true);
-            intent.putExtra("username", username);
-            startActivityForResult(intent, REQUEST_ADD_MORE_ITEMS);
+            closetBrowserLayout.setVisibility(View.VISIBLE);
         });
 
         btnZoomIn.setOnClickListener(v -> {
@@ -130,6 +165,241 @@ public class OutfitCreationActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Setup the closet browser to show user's existing clothes
+     */
+    private void setupClosetBrowser() {
+        // Use your existing ClothingAdapter
+        clothingAdapter = new ClothingAdapter(this, new ArrayList<>(userClothingItems));
+        clothingAdapter.setShowCheckboxes(false); // Don't show checkboxes for single selection
+        clothingAdapter.setShowAddTile(false); // Don't show add tile in the grid
+        clothingAdapter.setOnItemClickListener(new ClothingAdapter.OnItemClickListener() {
+            @Override
+            public void onClothingClick(ClothingItem item) {
+                // Add selected clothing item to workspace
+                addDraggableImage(item.getImageUri());
+                addItemBtn.setText("Save");
+                btnAddMoreItems.setVisibility(View.VISIBLE);
+
+                // Hide closet browser after selection
+                closetBrowserLayout.setVisibility(View.GONE);
+
+                Toast.makeText(OutfitCreationActivity.this,
+                        "Added " + item.getName() + " to workspace", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAddItemClick() {
+                // This won't be called since we set showAddTile to false
+            }
+        });
+
+        closetRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        closetRecyclerView.setAdapter(clothingAdapter);
+
+        // Add "Add New" button functionality
+        TextView btnAddNewClothes = findViewById(R.id.btnAddNewClothes);
+        btnAddNewClothes.setOnClickListener(v -> {
+            // Open camera/gallery to add new clothes
+            Intent intent = new Intent(OutfitCreationActivity.this, ItemsAddingActivity.class);
+            intent.putExtra("username", username);
+            startActivityForResult(intent, REQUEST_ADD_MORE_ITEMS);
+        });
+
+        // Load user's clothes from Supabase
+        loadUserClothing();
+    }
+
+    /**
+     * Load user's existing clothes from Supabase - FIXED VERSION
+     */
+    private void loadUserClothing() {
+        if (currentUserId == null || currentUserId.isEmpty()) {
+            Log.e(TAG, "No user ID found - cannot load clothes");
+            Toast.makeText(this, "Please log in to view your clothes", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.d(TAG, "Loading clothes for user: " + currentUserId);
+
+        // Show loading
+        closetTitle.setText("Loading your clothes...");
+
+        new Thread(() -> {
+            try {
+                // ✅ USE THE SAME METHOD AS YourClothesActivity
+                List<ClothingItem> items = clothingRepository.getClothingByUserId(currentUserId);
+
+                runOnUiThread(() -> {
+                    if (items != null && !items.isEmpty()) {
+                        userClothingItems.clear();
+                        userClothingItems.addAll(items);
+
+                        // Update the adapter with new data
+                        clothingAdapter.setItems(new ArrayList<>(userClothingItems));
+                        closetTitle.setText("My Clothes (" + userClothingItems.size() + " items)");
+
+                        Log.d(TAG, "✅ Successfully loaded " + userClothingItems.size() + " clothing items");
+                        Toast.makeText(OutfitCreationActivity.this,
+                                "Loaded " + userClothingItems.size() + " clothing items", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Log.e(TAG, "❌ No clothes found for user");
+                        closetTitle.setText("My Clothes (0 items)");
+                        Toast.makeText(OutfitCreationActivity.this,
+                                "No clothes found. Add some clothes first!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "❌ Error loading clothes: " + e.getMessage());
+                runOnUiThread(() -> {
+                    closetTitle.setText("My Clothes (Error)");
+                    Toast.makeText(OutfitCreationActivity.this,
+                            "Error loading clothes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * Get current user ID from SharedPreferences
+     */
+    private String getCurrentUserId() {
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String userId = prefs.getString("user_id", "");
+        if (userId.isEmpty()) {
+            Log.e(TAG, "No user ID found in SharedPreferences!");
+            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
+        }
+        return userId;
+    }
+
+    /**
+     * Capture outfit and show closet selection
+     */
+    private void goToSpecifyDetails() {
+        hideControlPanel();
+        Bitmap snapshot = captureOutfitSnapshot();
+        if (snapshot == null) {
+            Toast.makeText(this, "❌ Failed to capture outfit", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Show closet selection dialog before proceeding
+        showClosetSelectionDialog(snapshot);
+    }
+
+    /**
+     * Show dialog to select which closet to save the outfit to
+     */
+    private void showClosetSelectionDialog(Bitmap snapshot) {
+        // Load user's closets first
+        loadUserClosets(new ClosetSelectionCallback() {
+            @Override
+            public void onClosetsLoaded(List<com.example.outpick.database.models.ClosetItem> closets) {
+                if (closets.isEmpty()) {
+                    Toast.makeText(OutfitCreationActivity.this,
+                            "Please create a closet first!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Show closet selection dialog
+                showClosetDialog(closets, snapshot);
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(OutfitCreationActivity.this,
+                        "Failed to load closets: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Show dialog with closet options
+     */
+    private void showClosetDialog(List<com.example.outpick.database.models.ClosetItem> closets, Bitmap snapshot) {
+        String[] closetNames = new String[closets.size()];
+        for (int i = 0; i < closets.size(); i++) {
+            closetNames[i] = closets.get(i).getName();
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Save Outfit To Closet")
+                .setItems(closetNames, (dialog, which) -> {
+                    String selectedClosetId = closets.get(which).getId();
+                    String selectedClosetName = closets.get(which).getName();
+
+                    // Proceed to SpecifyDetailsActivity with closet info
+                    proceedToSpecifyDetails(snapshot, selectedClosetId, selectedClosetName);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /**
+     * Load user's closets from Supabase
+     */
+    private void loadUserClosets(ClosetSelectionCallback callback) {
+        Call<List<JsonObject>> call = supabaseService.getClosets();
+        call.enqueue(new Callback<List<JsonObject>>() {
+            @Override
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<com.example.outpick.database.models.ClosetItem> userClosets = new ArrayList<>();
+
+                    for (JsonObject jsonObject : response.body()) {
+                        // Filter by current user
+                        String userId = jsonObject.has("user_id") && !jsonObject.get("user_id").isJsonNull()
+                                ? jsonObject.get("user_id").getAsString() : "";
+
+                        if (currentUserId.equals(userId)) {
+                            com.example.outpick.database.models.ClosetItem closet = new com.example.outpick.database.models.ClosetItem(
+                                    jsonObject.get("id").getAsString(),
+                                    jsonObject.get("name").getAsString(),
+                                    "",
+                                    jsonObject.get("image_uri").getAsString(),
+                                    ""
+                            );
+                            userClosets.add(closet);
+                        }
+                    }
+
+                    callback.onClosetsLoaded(userClosets);
+                } else {
+                    callback.onError("Failed to load closets");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+
+    interface ClosetSelectionCallback {
+        void onClosetsLoaded(List<com.example.outpick.database.models.ClosetItem> closets);
+        void onError(String error);
+    }
+
+    /**
+     * Proceed to SpecifyDetailsActivity with closet information
+     */
+    private void proceedToSpecifyDetails(Bitmap snapshot, String closetId, String closetName) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        snapshot.compress(Bitmap.CompressFormat.PNG, 90, stream);
+        byte[] byteArray = stream.toByteArray();
+
+        Intent intent = new Intent(this, SpecifyDetailsActivity.class);
+        intent.putExtra("snapshot", byteArray);
+        intent.putExtra("username", username);
+        intent.putExtra("selected_closet_id", closetId);
+        intent.putExtra("selected_closet_name", closetName);
+        startActivity(intent);
+        finish();
+    }
+
     private void addDraggableImage(String imagePath) {
         workspace.post(() -> {
             LayoutInflater inflater = LayoutInflater.from(this);
@@ -137,11 +407,10 @@ public class OutfitCreationActivity extends AppCompatActivity {
             ImageView imageView = itemContainer.findViewById(R.id.outfitItemImage);
             View border = itemContainer.findViewById(R.id.itemBorder);
 
-            // ✅ FIXED: Use Glide to handle both cloud URLs and local files
+            // Use Glide to handle both cloud URLs and local files
             if (imagePath != null && !imagePath.isEmpty()) {
-                // Glide automatically handles both HTTPS URLs and local file paths
                 Glide.with(this)
-                        .load(imagePath) // Can be cloud URL or local file path
+                        .load(imagePath)
                         .placeholder(R.drawable.ic_placeholder)
                         .error(R.drawable.ic_error)
                         .into(imageView);
@@ -253,29 +522,6 @@ public class OutfitCreationActivity extends AppCompatActivity {
         controlsVisible = false;
     }
 
-    /**
-     * Instead of saving directly to DB and going to OutfitCombination,
-     * we capture snapshot and send it to SpecifyDetailsActivity.
-     */
-    private void goToSpecifyDetails() {
-        hideControlPanel();
-        Bitmap snapshot = captureOutfitSnapshot();
-        if (snapshot == null) {
-            Toast.makeText(this, "❌ Failed to capture outfit", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        snapshot.compress(Bitmap.CompressFormat.PNG, 90, stream);
-        byte[] byteArray = stream.toByteArray();
-
-        Intent intent = new Intent(this, SpecifyDetailsActivity.class);
-        intent.putExtra("snapshot", byteArray);
-        intent.putExtra("username", username);
-        startActivity(intent);
-        finish();
-    }
-
     private Bitmap captureOutfitSnapshot() {
         workspace.setDrawingCacheEnabled(true);
         workspace.buildDrawingCache();
@@ -304,6 +550,9 @@ public class OutfitCreationActivity extends AppCompatActivity {
                 }
                 addItemBtn.setText("Save");
                 btnAddMoreItems.setVisibility(View.VISIBLE);
+
+                // Reload clothes to show the newly added items
+                loadUserClothing();
             }
         }
     }

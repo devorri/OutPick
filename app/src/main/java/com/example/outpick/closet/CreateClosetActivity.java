@@ -1,9 +1,11 @@
 package com.example.outpick.closet;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -28,6 +30,7 @@ import retrofit2.Response;
 public class CreateClosetActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
+    private static final String TAG = "CreateClosetActivity";
 
     private ImageView imageCover;
     private EditText editClosetName;
@@ -35,6 +38,7 @@ public class CreateClosetActivity extends AppCompatActivity {
 
     private SupabaseService supabaseService;
     private ImageUploader imageUploader;
+    private String currentUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,10 @@ public class CreateClosetActivity extends AppCompatActivity {
         // Initialize Supabase and ImageUploader
         supabaseService = SupabaseClient.getService();
         imageUploader = new ImageUploader(this);
+
+        // Get current user ID
+        SharedPreferences sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        currentUserId = sharedPref.getString("user_id", "");
 
         imageCover = findViewById(R.id.imageCover);
         editClosetName = findViewById(R.id.editClosetName);
@@ -65,27 +73,42 @@ public class CreateClosetActivity extends AppCompatActivity {
                 return;
             }
 
+            if (currentUserId.isEmpty()) {
+                Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             // Check for duplicate closet name in Supabase
             checkClosetNameExists(closetName);
         });
     }
 
     private void checkClosetNameExists(String closetName) {
-        // First check if closet name already exists
+        Log.d(TAG, "Checking if closet name exists: " + closetName);
+
+        // First check if closet name already exists FOR THIS USER
         Call<List<JsonObject>> call = supabaseService.getClosets();
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
             public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
+                Log.d(TAG, "Closet name check response code: " + response.code());
+
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "Found " + response.body().size() + " existing closets");
+
                     for (JsonObject closet : response.body()) {
-                        if (closet.has("name") && closet.get("name").getAsString().equalsIgnoreCase(closetName)) {
-                            Toast.makeText(CreateClosetActivity.this, "A closet with this name already exists!", Toast.LENGTH_SHORT).show();
+                        if (closet.has("name") && closet.get("name").getAsString().equalsIgnoreCase(closetName) &&
+                                closet.has("user_id") && closet.get("user_id").getAsString().equals(currentUserId)) {
+                            Log.w(TAG, "Closet name already exists for this user: " + closetName);
+                            Toast.makeText(CreateClosetActivity.this, "You already have a closet with this name!", Toast.LENGTH_SHORT).show();
                             return;
                         }
                     }
                     // No duplicate found, proceed to save
+                    Log.d(TAG, "No duplicate found, proceeding to save closet");
                     saveClosetToSupabase(closetName);
                 } else {
+                    Log.e(TAG, "Closet name check failed with code: " + response.code());
                     // If we can't check, still try to save (let Supabase handle unique constraint)
                     saveClosetToSupabase(closetName);
                 }
@@ -93,6 +116,7 @@ public class CreateClosetActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                Log.e(TAG, "Closet name check network error: " + t.getMessage());
                 // If check fails, still try to save
                 saveClosetToSupabase(closetName);
             }
@@ -100,6 +124,8 @@ public class CreateClosetActivity extends AppCompatActivity {
     }
 
     private void saveClosetToSupabase(String closetName) {
+        Log.d(TAG, "Saving closet to Supabase: " + closetName);
+
         // Show loading
         Toast.makeText(this, "Creating closet...", Toast.LENGTH_SHORT).show();
         Button btnDone = findViewById(R.id.btnDone);
@@ -107,37 +133,49 @@ public class CreateClosetActivity extends AppCompatActivity {
         btnDone.setText("Creating...");
 
         if (selectedImageUri != null) {
-            // ✅ FIXED: Upload image to cloud storage first
+            Log.d(TAG, "Selected image URI: " + selectedImageUri.toString());
+            // Upload image to cloud storage first
             uploadImageAndSaveCloset(closetName, selectedImageUri);
         } else {
-            // Use default image (you might want to upload a default image to cloud too)
-            String defaultImageUrl = "https://your-project.supabase.co/storage/v1/object/public/closets/default_closet.jpg";
+            Log.w(TAG, "No image selected, using default image");
+            // Use default image
+            String defaultImageUrl = "https://via.placeholder.com/300x300/CCCCCC/969696?text=Closet";
             saveClosetToDatabase(closetName, defaultImageUrl);
         }
     }
 
     /**
-     * ✅ FIXED: Upload image to Supabase Storage, then save closet with cloud URL
+     * Upload image to Supabase Storage, then save closet with cloud URL
      */
     private void uploadImageAndSaveCloset(String closetName, Uri imageUri) {
-        String fileName = "closet_" + closetName.toLowerCase().replace(" ", "_") + "_" + System.currentTimeMillis() + ".jpg";
+        Log.d(TAG, "Starting image upload for closet: " + closetName);
+        Log.d(TAG, "Image URI: " + imageUri.toString());
 
-        imageUploader.uploadImage(imageUri, "closets", fileName, new ImageUploader.UploadCallback() {
+        String fileName = "closet_" + closetName.toLowerCase().replace(" ", "_") + "_" + System.currentTimeMillis() + ".jpg";
+        String bucketName = "clothing";
+
+        Log.d(TAG, "Generated filename: " + fileName);
+        Log.d(TAG, "Target bucket: " + bucketName);
+
+        imageUploader.uploadImage(imageUri, bucketName, fileName, new ImageUploader.UploadCallback() {
             @Override
             public void onSuccess(String cloudImageUrl) {
+                Log.d(TAG, "✅ Image uploaded successfully to: " + cloudImageUrl);
                 // Image uploaded successfully, now save closet with cloud URL
                 saveClosetToDatabase(closetName, cloudImageUrl);
             }
 
             @Override
             public void onError(String error) {
+                Log.e(TAG, "❌ Image upload failed: " + error);
+
                 runOnUiThread(() -> {
                     Toast.makeText(CreateClosetActivity.this,
                             "Failed to upload image: " + error + ". Using default image.", Toast.LENGTH_LONG).show();
 
                     // Fallback: save with default image URL
-                    String defaultImageUrl = "https://your-project.supabase.co/storage/v1/object/public/closets/default_closet.jpg";
-                    saveClosetToDatabase(closetName, defaultImageUrl);
+                    String fallbackImageUrl = "https://via.placeholder.com/300x300/CCCCCC/969696?text=Closet";
+                    saveClosetToDatabase(closetName, fallbackImageUrl);
 
                     Button btnDone = findViewById(R.id.btnDone);
                     btnDone.setEnabled(true);
@@ -148,29 +186,47 @@ public class CreateClosetActivity extends AppCompatActivity {
     }
 
     /**
-     * ✅ FIXED: Save closet to database with CLOUD URL
+     * Save closet to database with CLOUD URL and USER ID
      */
     private void saveClosetToDatabase(String closetName, String cloudImageUrl) {
+        Log.d(TAG, "Saving closet to database: " + closetName);
+        Log.d(TAG, "Using image URL: " + cloudImageUrl);
+        Log.d(TAG, "User ID: " + currentUserId);
+
         // Create closet object for Supabase
         JsonObject closet = new JsonObject();
         closet.addProperty("name", closetName);
-        closet.addProperty("image_uri", cloudImageUrl); // ✅ Now storing CLOUD URL
+        closet.addProperty("image_uri", cloudImageUrl);
+        closet.addProperty("user_id", currentUserId); // ✅ CRITICAL: Add user ID
         closet.addProperty("created_at", new java.util.Date().toString());
 
-        // ✅ FIXED: Changed to List<JsonObject>
+        Log.d(TAG, "Closet data: " + closet.toString());
+
         Call<List<JsonObject>> call = supabaseService.insertCloset(closet);
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
             public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
+                Log.d(TAG, "Closet save response code: " + response.code());
+
                 runOnUiThread(() -> {
                     Button btnDone = findViewById(R.id.btnDone);
                     btnDone.setEnabled(true);
                     btnDone.setText("Done");
 
                     if (response.isSuccessful()) {
+                        Log.d(TAG, "✅ Closet saved successfully!");
                         Toast.makeText(CreateClosetActivity.this, "Closet saved to cloud!", Toast.LENGTH_SHORT).show();
                         finish(); // Go back to main screen
                     } else {
+                        Log.e(TAG, "❌ Closet save failed with code: " + response.code());
+                        try {
+                            if (response.errorBody() != null) {
+                                String errorBody = response.errorBody().string();
+                                Log.e(TAG, "Error response body: " + errorBody);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error reading error body: " + e.getMessage());
+                        }
                         Toast.makeText(CreateClosetActivity.this, "Failed to save closet", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -178,6 +234,7 @@ public class CreateClosetActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                Log.e(TAG, "❌ Closet save network error: " + t.getMessage());
                 runOnUiThread(() -> {
                     Button btnDone = findViewById(R.id.btnDone);
                     btnDone.setEnabled(true);
@@ -190,6 +247,7 @@ public class CreateClosetActivity extends AppCompatActivity {
 
     // Open gallery
     private void openImagePicker() {
+        Log.d(TAG, "Opening image picker");
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
@@ -201,13 +259,16 @@ public class CreateClosetActivity extends AppCompatActivity {
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             selectedImageUri = data.getData();
+            Log.d(TAG, "Image selected from gallery: " + selectedImageUri.toString());
 
-            // ✅ FIXED: Use Glide to display the image (handles both local and cloud URIs)
+            // Use Glide to display the image
             Glide.with(this)
                     .load(selectedImageUri)
                     .placeholder(R.drawable.ic_placeholder)
                     .error(R.drawable.ic_error)
                     .into(imageCover);
+        } else {
+            Log.w(TAG, "Image selection cancelled or failed - request: " + requestCode + ", result: " + resultCode);
         }
     }
 }

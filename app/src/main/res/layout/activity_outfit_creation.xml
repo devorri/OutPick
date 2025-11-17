@@ -34,6 +34,57 @@
             android:textColor="#0B1223" />
     </RelativeLayout>
 
+    <!-- Closet Browser Section -->
+    <LinearLayout
+        android:id="@+id/closetBrowserLayout"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:visibility="visible"
+        android:layout_below="@id/top_bar"
+        android:layout_above="@id/add_item_button"
+        android:elevation="8dp"
+        android:layout_margin="8dp"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/closetTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="My Clothes"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#0B1223" />
+
+            <TextView
+                android:id="@+id/btnAddNewClothes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add New"
+                android:textColor="#2196F3"
+                android:textStyle="bold"
+                android:padding="8dp"
+                android:background="?attr/selectableItemBackground" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/closetRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="8dp" />
+
+    </LinearLayout>
+
     <!-- Workspace -->
     <FrameLayout
         android:id="@+id/workspace"

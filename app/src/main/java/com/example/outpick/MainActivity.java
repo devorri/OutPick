@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -76,6 +77,8 @@ public class MainActivity extends BaseDrawerActivity {
         SharedPreferences sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         username = sharedPref.getString("username", "Guest");
         currentUserId = sharedPref.getString("user_id", "");
+
+        Log.d("MainActivity", "👤 Current User ID: " + currentUserId);
 
         if (currentUserId.isEmpty()) {
             Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
@@ -203,7 +206,7 @@ public class MainActivity extends BaseDrawerActivity {
         RecyclerView recyclerView = findViewById(R.id.recyclerClosets);
 
         if (currentUserId.isEmpty()) {
-            // Show empty state if user not logged in
+            Log.w("MainActivity", "❌ No user ID - showing empty state");
             showEmptyClosetState(recyclerView);
             return;
         }
@@ -213,15 +216,21 @@ public class MainActivity extends BaseDrawerActivity {
     }
 
     private void loadClosetsFromSupabase(RecyclerView recyclerView) {
-        // Get ALL closets first (since we don't have a direct user_id filter endpoint)
+        Log.d("MainActivity", "🔄 Loading closets for user: " + currentUserId);
+
         Call<List<JsonObject>> call = supabaseService.getClosets();
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
             public void onResponse(@NonNull Call<List<JsonObject>> call, @NonNull Response<List<JsonObject>> response) {
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d("MainActivity", "📦 Total closets from Supabase: " + response.body().size());
+
                     List<ClosetItem> userClosets = parseClosetsFromJson(response.body());
+                    Log.d("MainActivity", "👤 User's closets after filtering: " + userClosets.size());
+
                     setupClosetAdapter(recyclerView, userClosets);
                 } else {
+                    Log.e("MainActivity", "❌ Failed to load closets: " + response.code());
                     Toast.makeText(MainActivity.this, "Failed to load closets", Toast.LENGTH_SHORT).show();
                     showEmptyClosetState(recyclerView);
                 }
@@ -229,6 +238,7 @@ public class MainActivity extends BaseDrawerActivity {
 
             @Override
             public void onFailure(@NonNull Call<List<JsonObject>> call, @NonNull Throwable t) {
+                Log.e("MainActivity", "❌ Network error: " + t.getMessage());
                 Toast.makeText(MainActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 showEmptyClosetState(recyclerView);
             }
@@ -241,26 +251,53 @@ public class MainActivity extends BaseDrawerActivity {
 
         for (JsonObject jsonObject : jsonObjects) {
             try {
-                // Only include closets for current user
-                String userId = jsonObject.has("user_id") ? jsonObject.get("user_id").getAsString() : "";
+                // ✅ FIXED: Safe null handling for user_id
+                String userId = "";
+                if (jsonObject.has("user_id") && !jsonObject.get("user_id").isJsonNull()) {
+                    userId = jsonObject.get("user_id").getAsString();
+                }
+
                 if (currentUserId.equals(userId)) {
                     ClosetItem closet = gson.fromJson(jsonObject, ClosetItem.class);
+
+                    // ✅ DEBUG: Enhanced logging
+                    Log.d("MainActivity", "✅ Found user closet: " + closet.getName() +
+                            " | ID: " + closet.getId() +
+                            " | User ID: " + closet.getUserId() +
+                            " | Image: " + closet.getCoverImageUri());
+
                     closets.add(closet);
+                } else {
+                    // ✅ FIXED: Safe null handling for name
+                    String closetName = "Unknown";
+                    if (jsonObject.has("name") && !jsonObject.get("name").isJsonNull()) {
+                        closetName = jsonObject.get("name").getAsString();
+                    }
+                    Log.d("MainActivity", "❌ Skipping closet '" + closetName + "' - User ID mismatch: " +
+                            userId + " vs " + currentUserId);
                 }
             } catch (Exception e) {
+                Log.e("MainActivity", "❌ Error parsing closet: " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
+        Log.d("MainActivity", "📊 Total user closets found: " + closets.size());
         return closets;
     }
 
     private void setupClosetAdapter(RecyclerView recyclerView, List<ClosetItem> userClosets) {
-        // Build the final display list, starting with the two static cards
+        Log.d("MainActivity", "🎯 Setting up adapter with " + userClosets.size() + " user closets");
+
+        // ✅ KEEP THE 2 CARDS: Build the final display list, starting with the two static cards
         List<ClosetItem> fullList = new ArrayList<>();
+
+        // Card 1: Outfit Combinations
         fullList.add(new ClosetItem("Outfit Combinations", "",
                 String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.top_test3)),
                 "outfit_card"));
+
+        // Card 2: Create a closet
         fullList.add(new ClosetItem("Create a closet", "",
                 String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.ic_create_closet)),
                 "create_card"));
@@ -272,6 +309,8 @@ public class MainActivity extends BaseDrawerActivity {
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
+
+        Log.d("MainActivity", "🎴 Total items in adapter: " + fullList.size() + " (2 static cards + " + userClosets.size() + " user closets)");
     }
 
     private void showEmptyClosetState(RecyclerView recyclerView) {

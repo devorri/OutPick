@@ -49,10 +49,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize Supabase service
         supabaseService = SupabaseClient.getService();
 
-        // Initialize views
         usernameEditText = findViewById(R.id.UsernameEditText);
         passwordEditText = findViewById(R.id.PasswordEditText);
         togglePassword = findViewById(R.id.togglePassword);
@@ -61,10 +59,8 @@ public class LoginActivity extends AppCompatActivity {
         tvUsernameError = findViewById(R.id.tvUsernameError);
         tvPasswordError = findViewById(R.id.tvPasswordError);
 
-        // Test connection (optional - remove in production)
         testSupabaseConnection();
 
-        // Toggle password visibility
         togglePassword.setOnClickListener(v -> {
             if (passwordEditText.getInputType() ==
                     (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
@@ -79,17 +75,14 @@ public class LoginActivity extends AppCompatActivity {
             passwordEditText.setSelection(passwordEditText.length());
         });
 
-        // Login button click
         buttonLogin.setOnClickListener(v -> handleLogin());
 
-        // Go to Signup
         textGoToSignup.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, SignupActivity.class));
             finish();
         });
     }
 
-    // Login validation + navigation
     private void handleLogin() {
         String username = usernameEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
@@ -102,18 +95,14 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Admin shortcut
         if (username.equals("admin0215") && password.equals("admin0215")) {
-            // For admin, we need to get the actual user data from Supabase
             validateUserWithSupabase(username, password);
             return;
         }
 
-        // Validate user via Supabase
         validateUserWithSupabase(username, password);
     }
 
-    // Validate user with Supabase
     private void validateUserWithSupabase(String username, String password) {
         if (!isNetworkAvailable()) {
             Toast.makeText(LoginActivity.this, "No internet connection", Toast.LENGTH_LONG).show();
@@ -129,13 +118,10 @@ public class LoginActivity extends AppCompatActivity {
                     if (users != null && !users.isEmpty()) {
                         JsonObject user = users.get(0);
 
-                        // Check password
                         String storedPassword = user.has("password") ? user.get("password").getAsString() : "";
                         if (storedPassword.equals(password)) {
                             String role = user.has("role") ? user.get("role").getAsString() : "user";
                             String displayUsername = user.has("username") ? user.get("username").getAsString() : username;
-
-                            // ✅ GET THE ACTUAL USER ID FROM SUPABASE
                             String userId = user.has("id") ? user.get("id").getAsString() : "";
 
                             updateLastLoginInSupabase(username);
@@ -147,7 +133,6 @@ public class LoginActivity extends AppCompatActivity {
                         showBothErrors("Invalid username or password");
                     }
                 } else {
-                    // Handle HTTP error responses
                     String errorMessage = "Login failed: ";
                     try {
                         if (response.errorBody() != null) {
@@ -168,26 +153,15 @@ public class LoginActivity extends AppCompatActivity {
                 String errorMessage = "Network error: " + t.getMessage();
                 Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                 Log.e(TAG, "Network error during login: " + t.getMessage());
-
-                // Log detailed error info
-                if (t instanceof java.net.UnknownHostException) {
-                    Log.e(TAG, "Cannot resolve Supabase host - check internet connection");
-                } else if (t instanceof java.net.SocketTimeoutException) {
-                    Log.e(TAG, "Connection timeout - server might be down");
-                } else if (t instanceof javax.net.ssl.SSLHandshakeException) {
-                    Log.e(TAG, "SSL handshake failed");
-                }
             }
         });
     }
 
-    // Update last login in Supabase - FIXED VERSION
     private void updateLastLoginInSupabase(String username) {
         JsonObject updates = new JsonObject();
         updates.addProperty("last_login", new java.util.Date().toString());
         updates.addProperty("status", "Active");
 
-        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
         Call<List<JsonObject>> call = supabaseService.updateUser(username, updates);
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
@@ -204,13 +178,11 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    // Handle successful login
     private void handleSuccessfulLogin(String userId, String username, String role) {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
-        // ✅ SAVE ALL NECESSARY USER DATA
-        editor.putString("user_id", userId); // This is what MainActivity needs!
+        editor.putString("user_id", userId);
         editor.putString("username", username);
         editor.putString("role", role);
         editor.putBoolean("is_logged_in", true);
@@ -225,13 +197,16 @@ public class LoginActivity extends AppCompatActivity {
         if ("admin".equalsIgnoreCase(role)) {
             intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
         } else {
-            // ✅ FIXED: Use USER ID instead of username for profile setup check
-            boolean isSetupDone = prefs.getBoolean("profile_setup_done_" + userId, false);
+            boolean isSetupDone = prefs.getBoolean("profile_setup_done_" + userId, false) ||
+                    prefs.getBoolean("profile_setup_done", false);
+
+            Log.d(TAG, "Profile setup status - UserID: " + userId + ", SetupDone: " + isSetupDone);
 
             if (!isSetupDone) {
                 Log.d(TAG, "First-time login → redirect to profile setup");
                 intent = new Intent(LoginActivity.this, LoginProfileActivity.class);
             } else {
+                Log.d(TAG, "Returning user → redirect to MainActivity");
                 intent = new Intent(LoginActivity.this, MainActivity.class);
             }
         }
@@ -242,7 +217,6 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    // Show username/password errors
     private void showBothErrors(String message) {
         tvUsernameError.setText(message);
         tvPasswordError.setText(message);
@@ -250,7 +224,6 @@ public class LoginActivity extends AppCompatActivity {
         tvPasswordError.setVisibility(View.VISIBLE);
     }
 
-    // Check network availability
     private boolean isNetworkAvailable() {
         try {
             ConnectivityManager connectivityManager =
@@ -263,7 +236,6 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    // Test Supabase connection
     private void testSupabaseConnection() {
         Call<List<JsonObject>> testCall = supabaseService.getUsers();
         testCall.enqueue(new Callback<List<JsonObject>>() {

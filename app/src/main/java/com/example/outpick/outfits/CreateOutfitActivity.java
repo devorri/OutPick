@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -157,7 +158,8 @@ public class CreateOutfitActivity extends AppCompatActivity {
         showLoading("Uploading image...");
 
         String fileName = generateFileName(source);
-        String folder = "user_outfits"; // Different folder for user-uploaded outfits
+        // FIXED: Use the correct bucket name "clothing"
+        String folder = "clothing"; // Use the actual working bucket name
 
         imageUploader.uploadImage(imageUri, folder, fileName, new ImageUploader.UploadCallback() {
             @Override
@@ -193,11 +195,14 @@ public class CreateOutfitActivity extends AppCompatActivity {
     private void goToPreview(String cloudImageUrl, String localImageUri) {
         Intent intent = new Intent(CreateOutfitActivity.this, PreviewImageActivity.class);
 
-        // Pass both cloud URL and local URI
+        // Pass BOTH parameters with clear names
         if (cloudImageUrl != null) {
             intent.putExtra("cloud_image_url", cloudImageUrl);
+            Log.d("CreateOutfitActivity", "Passing cloud URL: " + cloudImageUrl);
         }
+
         intent.putExtra("local_image_uri", localImageUri);
+        Log.d("CreateOutfitActivity", "Passing local URI: " + localImageUri);
 
         startActivity(intent);
     }

@@ -23,7 +23,7 @@ public class ImageUploader {
 
     public ImageUploader(Context context) {
         this.context = context;
-        this.supabaseService = SupabaseClient.getStorageService(); // Use storage service
+        this.supabaseService = SupabaseClient.getStorageService();
     }
 
     public interface UploadCallback {
@@ -31,6 +31,25 @@ public class ImageUploader {
         void onError(String error);
     }
 
+    // NEW METHOD: Handle byte array uploads
+    public void uploadImage(byte[] imageData, String bucketName, String fileName, UploadCallback callback) {
+        try {
+            // Convert byte array to temporary file
+            File tempFile = new File(context.getCacheDir(), fileName);
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            fos.write(imageData);
+            fos.close();
+
+            // Upload the temporary file using existing URI method
+            uploadImage(Uri.fromFile(tempFile), bucketName, fileName, callback);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error converting byte array to file: " + e.getMessage());
+            callback.onError("Failed to process image: " + e.getMessage());
+        }
+    }
+
+    // EXISTING METHOD: Handle URI uploads
     public void uploadImage(Uri imageUri, String bucketName, String fileName, UploadCallback callback) {
         try {
             File file = getFileFromUri(imageUri, fileName);
@@ -42,14 +61,15 @@ public class ImageUploader {
             RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), file);
             MultipartBody.Part body = MultipartBody.Part.createFormData("file", fileName, requestFile);
 
-            String filePath = fileName; // You can add folders: "outfits/" + fileName
+            String filePath = fileName;
+
+            Log.d(TAG, "Uploading to bucket: " + bucketName + ", file: " + filePath);
 
             Call<JsonObject> call = supabaseService.uploadFile(bucketName, filePath, body);
             call.enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                     if (response.isSuccessful()) {
-                        // Construct public URL for the uploaded file
                         String publicUrl = "https://xaekxlyllgjxneyhurfp.supabase.co/storage/v1/object/public/" +
                                 bucketName + "/" + filePath;
                         Log.d(TAG, "Upload successful: " + publicUrl);
@@ -58,7 +78,9 @@ public class ImageUploader {
                         String error = "Upload failed: " + response.code();
                         if (response.errorBody() != null) {
                             try {
-                                error += " - " + response.errorBody().string();
+                                String errorBody = response.errorBody().string();
+                                error += " - " + errorBody;
+                                Log.e(TAG, "Error response: " + errorBody);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }

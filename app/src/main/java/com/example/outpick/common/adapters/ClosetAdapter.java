@@ -24,21 +24,19 @@ import com.example.outpick.R;
 import com.example.outpick.closet.ClosetDetailActivity;
 import com.example.outpick.closet.CreateClosetActivity;
 import com.example.outpick.database.models.ClosetItem;
+import com.example.outpick.database.models.Outfit;
+import com.example.outpick.database.repositories.OutfitRepository;
+import com.example.outpick.database.repositories.UserOutfitRepository;
 import com.example.outpick.database.supabase.SupabaseClient;
 import com.example.outpick.database.supabase.SupabaseService;
 import com.example.outpick.outfits.CreateOutfitActivity;
 import com.example.outpick.outfits.OutfitCombinationActivity;
 import com.example.outpick.outfits.OutfitCreationActivity;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.gson.JsonObject;
 
 import java.util.List;
 
 import com.example.outpick.common.BaseDrawerActivity;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -50,12 +48,18 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final MainActivity mainActivity;
     private final List<ClosetItem> closetList;
     private final SupabaseService supabaseService;
+    private final UserOutfitRepository userOutfitRepository;
+    private final OutfitRepository outfitRepository;
     private final String currentUserId;
 
     public ClosetAdapter(MainActivity mainActivity, List<ClosetItem> closetList) {
         this.mainActivity = mainActivity;
         this.closetList = closetList;
         this.supabaseService = SupabaseClient.getService();
+
+        // Initialize repositories
+        this.outfitRepository = new OutfitRepository(supabaseService);
+        this.userOutfitRepository = new UserOutfitRepository(supabaseService, outfitRepository);
 
         // Get current user ID
         SharedPreferences prefs = mainActivity.getSharedPreferences("UserPrefs", MainActivity.MODE_PRIVATE);
@@ -95,8 +99,8 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             OutfitViewHolder h = (OutfitViewHolder) holder;
             h.outfitLabel.setText("Outfit Combinations");
 
-            // 🔁 Load dynamic snapshot count from Supabase
-            loadOutfitSnapshotCount(h);
+            // 🔁 Load dynamic snapshot count from Supabase FOR CURRENT USER ONLY
+            loadOutfitSnapshotCountForCurrentUser(h);
 
             h.plusBtn.setImageResource(R.drawable.ic_plus);
             h.plusBtn.setBackgroundResource(R.drawable.circle_background_white);
@@ -164,35 +168,36 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
-    private void loadOutfitSnapshotCount(OutfitViewHolder holder) {
-        if (currentUserId.isEmpty()) {
+    // ✅ UPDATED: Load outfit count for CURRENT USER only
+    private void loadOutfitSnapshotCountForCurrentUser(OutfitViewHolder holder) {
+        if (currentUserId == null || currentUserId.isEmpty()) {
             holder.outfitSub.setText("Tap to View");
             return;
         }
 
-        // Get outfits count for current user from Supabase
-        Call<List<JsonObject>> call = supabaseService.getOutfits();
-        call.enqueue(new Callback<List<JsonObject>>() {
-            @Override
-            public void onResponse(@NonNull Call<List<JsonObject>> call, @NonNull Response<List<JsonObject>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    int snapshotCount = response.body().size();
+        // Run in background thread to avoid NetworkOnMainThreadException
+        new Thread(() -> {
+            try {
+                List<Outfit> userOutfits = userOutfitRepository.getOutfitsForUser(currentUserId);
+                int snapshotCount = userOutfits.size();
 
+                mainActivity.runOnUiThread(() -> {
                     if (snapshotCount > 0) {
                         holder.outfitSub.setText(snapshotCount + " Outfit" + (snapshotCount > 1 ? "s" : ""));
                     } else {
                         holder.outfitSub.setText("Tap to View");
                     }
-                } else {
-                    holder.outfitSub.setText("Tap to View");
-                }
-            }
+                });
 
-            @Override
-            public void onFailure(@NonNull Call<List<JsonObject>> call, @NonNull Throwable t) {
-                holder.outfitSub.setText("Tap to View");
+                Log.d(TAG, "Loaded " + snapshotCount + " outfits for user: " + currentUserId);
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading user outfit count: " + e.getMessage());
+                mainActivity.runOnUiThread(() -> {
+                    holder.outfitSub.setText("Tap to View");
+                });
             }
-        });
+        }).start();
     }
 
     private void deleteClosetFromSupabase(ClosetItem closetItem, int position) {
@@ -217,10 +222,11 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             return;
         }
 
-        Call<Void> call = supabaseService.deleteCloset(closetId);
-        call.enqueue(new Callback<Void>() {
+        // Use Retrofit call for deletion
+        retrofit2.Call<Void> call = supabaseService.deleteCloset(closetId);
+        call.enqueue(new retrofit2.Callback<Void>() {
             @Override
-            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+            public void onResponse(@NonNull retrofit2.Call<Void> call, @NonNull retrofit2.Response<Void> response) {
                 if (response.isSuccessful()) {
                     // Remove from local list and update UI
                     closetList.remove(position);
@@ -232,7 +238,7 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             }
 
             @Override
-            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull retrofit2.Call<Void> call, @NonNull Throwable t) {
                 Toast.makeText(mainActivity, "Network error deleting closet", Toast.LENGTH_SHORT).show();
             }
         });
@@ -274,7 +280,7 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         bottomSheetDialog.show();
     }
 
-    // ✅ Called from MainActivity.onResume() to refresh the "X Images" label
+    // ✅ Called from MainActivity.onResume() to refresh the "X Outfits" label
     public void updateOutfitSnapshotCount() {
         // This will automatically refresh when the adapter rebinds
         notifyDataSetChanged();

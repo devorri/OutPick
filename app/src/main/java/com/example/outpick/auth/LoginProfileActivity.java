@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -30,6 +31,7 @@ public class LoginProfileActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final String PREFS_NAME = "UserPrefs";
+    private static final String TAG = "LoginProfileActivity";
 
     private ImageView profileImage;
     private EditText usernameEdit;
@@ -138,7 +140,7 @@ public class LoginProfileActivity extends AppCompatActivity {
                     continueButton.setEnabled(true);
                     continueButton.setText("Continue");
                     Toast.makeText(LoginProfileActivity.this,
-                            "Failed to upload image", Toast.LENGTH_SHORT).show();
+                            "Failed to upload image: " + error, Toast.LENGTH_SHORT).show();
                     saveProfileToDatabase(newDisplayName, null);
                 });
             }
@@ -155,20 +157,24 @@ public class LoginProfileActivity extends AppCompatActivity {
         }
 
         editor.putBoolean("profile_setup_done_" + userId, true);
+        editor.putBoolean("profile_setup_done", true);
         editor.apply();
+
+        Log.d(TAG, "✅ Profile setup marked complete for user: " + userId);
 
         updateProfileInSupabase(newDisplayName, imageUrl);
     }
 
     private void updateProfileInSupabase(String newDisplayName, String imageUrl) {
         JsonObject updates = new JsonObject();
-        updates.addProperty("username", newDisplayName);
+        updates.addProperty("display_name", newDisplayName);
         if (imageUrl != null) {
             updates.addProperty("profile_image_uri", imageUrl);
         }
 
-        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
-        Call<List<JsonObject>> call = supabaseService.updateUserById(userId, updates);
+        String updateUrl = "users?id=eq." + userId;
+
+        Call<List<JsonObject>> call = supabaseService.updateUserById(updateUrl, updates);
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
             public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
@@ -180,6 +186,7 @@ public class LoginProfileActivity extends AppCompatActivity {
                         Toast.makeText(LoginProfileActivity.this, "Profile set successfully!", Toast.LENGTH_SHORT).show();
                         goToMainScreen();
                     } else {
+                        Toast.makeText(LoginProfileActivity.this, "Profile saved locally!", Toast.LENGTH_SHORT).show();
                         goToMainScreen();
                     }
                 });
@@ -190,6 +197,7 @@ public class LoginProfileActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     continueButton.setEnabled(true);
                     continueButton.setText("Continue");
+                    Toast.makeText(LoginProfileActivity.this, "Profile saved locally!", Toast.LENGTH_SHORT).show();
                     goToMainScreen();
                 });
             }
@@ -201,7 +209,10 @@ public class LoginProfileActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putBoolean("profile_setup_done_" + userId, true);
+        editor.putBoolean("profile_setup_done", true);
         editor.apply();
+
+        Log.d(TAG, "✅ Profile setup skipped but marked complete for user: " + userId);
 
         Toast.makeText(this, "Skipped profile setup.", Toast.LENGTH_SHORT).show();
         goToMainScreen();
