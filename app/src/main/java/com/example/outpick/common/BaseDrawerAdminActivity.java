@@ -18,6 +18,8 @@ import com.example.outpick.database.supabase.SupabaseService;
 import com.google.android.material.navigation.NavigationView;
 import com.google.gson.JsonObject;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -99,10 +101,11 @@ public class BaseDrawerAdminActivity extends AppCompatActivity {
         JsonObject updates = new JsonObject();
         updates.addProperty("last_logout", System.currentTimeMillis()); // Or use proper timestamp format
 
-        Call<JsonObject> call = supabaseService.updateUserById(currentUserId, updates);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.updateUserById(currentUserId, updates);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 // Logout proceeds regardless of success/failure
                 if (!response.isSuccessful()) {
                     // Silent fail - user can still logout
@@ -111,7 +114,7 @@ public class BaseDrawerAdminActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 // Silent fail - user can still logout
                 System.out.println("Network error updating logout timestamp");
             }

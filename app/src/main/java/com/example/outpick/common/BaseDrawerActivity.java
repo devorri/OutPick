@@ -226,19 +226,37 @@ public abstract class BaseDrawerActivity extends AppCompatActivity implements Na
                     usernameText.setText(R.string.username_placeholder);
                 }
 
+                // ✅ FIX: Better profile image handling
                 if (profileUri != null && !profileUri.isEmpty()) {
                     try {
                         Uri savedUri = Uri.parse(profileUri);
-                        getContentResolver().takePersistableUriPermission(savedUri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                        profileImage.setScaleType(ImageView.ScaleType.FIT_XY);
+                        // ✅ FIX: Try to take persistable permission, but don't fail if we can't
+                        try {
+                            getContentResolver().takePersistableUriPermission(savedUri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            Log.d(TAG, "Successfully took persistable URI permission");
+                        } catch (SecurityException se) {
+                            // Permission already granted or not needed for this URI
+                            Log.d(TAG, "Could not take persistable permission (might already exist): " + se.getMessage());
+                        }
+
+                        profileImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
                         profileImage.setImageURI(savedUri);
+
+                        // ✅ FIX: Verify image loaded successfully
+                        if (profileImage.getDrawable() == null) {
+                            Log.w(TAG, "Image failed to load, using default");
+                            profileImage.setImageResource(R.drawable.account_circle);
+                            // Don't clear the URI in Supabase - just use default locally
+                        }
                     } catch (Exception e) {
-                        Log.e(TAG, "Profile URI invalid or access revoked. Falling back to default.", e);
+                        Log.e(TAG, "Profile URI invalid or access revoked: " + e.getMessage());
                         profileImage.setImageResource(R.drawable.account_circle);
-                        // Update Supabase with null profile image
-                        updateProfileImageInSupabase(null);
+                        // ✅ FIX: Only clear if it's a content:// URI that failed
+                        if (profileUri.startsWith("content://")) {
+                            updateProfileImageInSupabase(null);
+                        }
                     }
                 } else {
                     profileImage.setImageResource(R.drawable.account_circle);
@@ -251,23 +269,34 @@ public abstract class BaseDrawerActivity extends AppCompatActivity implements Na
     }
 
     private void updateProfileImageInSupabase(String imageUri) {
-        if (userId == null || userId.isEmpty()) return;
+        if (userId == null || userId.isEmpty()) {
+            Log.w(TAG, "Cannot update profile image: userId is null or empty");
+            return;
+        }
 
+        // ✅ FIX: Use proper JSON format
         JsonObject updates = new JsonObject();
-        updates.addProperty("profile_image_uri", imageUri);
+        if (imageUri == null) {
+            updates.add("profile_image_uri", null);
+        } else {
+            updates.addProperty("profile_image_uri", imageUri);
+        }
 
-        Call<JsonObject> call = supabaseService.updateUserById(userId, updates);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.updateUserById(userId, updates);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (!response.isSuccessful()) {
-                    Log.e(TAG, "Failed to update profile image in Supabase");
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Successfully updated profile image in Supabase");
+                } else {
+                    Log.e(TAG, "Failed to update profile image in Supabase: " + response.code() + " - " + response.message());
                 }
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                Log.e(TAG, "Network error updating profile image in Supabase", t);
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                Log.e(TAG, "Network error updating profile image in Supabase: " + t.getMessage());
             }
         });
     }
@@ -340,22 +369,34 @@ public abstract class BaseDrawerActivity extends AppCompatActivity implements Na
     }
 
     private void updateUserStatusInSupabase(String userId, String status) {
+        if (userId == null || userId.isEmpty()) {
+            Log.w(TAG, "Cannot update user status: userId is null or empty");
+            return;
+        }
+
+        // ✅ FIX: Use proper date formatting
         JsonObject updates = new JsonObject();
         updates.addProperty("status", status);
-        updates.addProperty("last_logout", new java.util.Date().toString());
 
-        Call<JsonObject> call = supabaseService.updateUserById(userId, updates);
-        call.enqueue(new Callback<JsonObject>() {
+        // Use ISO 8601 format for dates
+        String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).format(new java.util.Date());
+        updates.addProperty("last_logout", timestamp);
+
+        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.updateUserById(userId, updates);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (!response.isSuccessful()) {
-                    Log.e(TAG, "Failed to update user status in Supabase");
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Successfully updated user status in Supabase");
+                } else {
+                    Log.e(TAG, "Failed to update user status in Supabase: " + response.code() + " - " + response.message());
                 }
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                Log.e(TAG, "Network error updating user status in Supabase", t);
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
+                Log.e(TAG, "Network error updating user status in Supabase: " + t.getMessage());
             }
         });
     }

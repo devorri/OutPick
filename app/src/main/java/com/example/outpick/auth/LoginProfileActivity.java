@@ -20,6 +20,8 @@ import com.example.outpick.database.supabase.SupabaseService;
 import com.example.outpick.utils.ImageUploader;
 import com.google.gson.JsonObject;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -165,10 +167,11 @@ public class LoginProfileActivity extends AppCompatActivity {
             updates.addProperty("profile_image_uri", imageUrl);
         }
 
-        Call<JsonObject> call = supabaseService.updateUserById(userId, updates);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.updateUserById(userId, updates);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 runOnUiThread(() -> {
                     continueButton.setEnabled(true);
                     continueButton.setText("Continue");
@@ -183,7 +186,7 @@ public class LoginProfileActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 runOnUiThread(() -> {
                     continueButton.setEnabled(true);
                     continueButton.setText("Continue");

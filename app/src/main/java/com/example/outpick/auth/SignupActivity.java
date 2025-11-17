@@ -250,14 +250,12 @@ public class SignupActivity extends AppCompatActivity {
             Log.d(TAG, "User object created: " + user.toString());
 
             // Create a custom call that can handle both JsonObject and JsonArray responses
-            Call<JsonObject> call = supabaseService.insertUser(user);
-            call.enqueue(new Callback<JsonObject>() {
+            Call<List<JsonObject>> insertCall = supabaseService.insertUser(user);
+            insertCall.enqueue(new Callback<List<JsonObject>>() {
                 @Override
-                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                     // Check if response is successful (200-299)
                     if (response.isSuccessful()) {
-                        // Even if we get JsonArray, the response code will be successful
-                        // So we consider it a success regardless of the body type
                         Log.d(TAG, "User created successfully - Response code: " + response.code());
                         Toast.makeText(SignupActivity.this, "Account created! Please log in.", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(SignupActivity.this, LoginActivity.class));
@@ -293,7 +291,7 @@ public class SignupActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailure(Call<JsonObject> call, Throwable t) {
+                public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                     // Check if this is the JsonArray vs JsonObject error
                     if (t.getMessage() != null && t.getMessage().contains("Expected a com.google.gson.JsonObject but was com.google.gson.JsonArray")) {
                         Log.w(TAG, "Supabase returned JsonArray instead of JsonObject, but user was likely created successfully");

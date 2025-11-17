@@ -124,7 +124,8 @@ public class OutfitRepository {
             outfit.addProperty("season", season);
             outfit.addProperty("style", style);
 
-            Response<JsonObject> response = supabase.insertOutfit(outfit).execute();
+            // ✅ FIXED: Change from Response<JsonObject> to Response<List<JsonObject>>
+            Response<List<JsonObject>> response = supabase.insertOutfit(outfit).execute();
             return response.isSuccessful();
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,7 +146,8 @@ public class OutfitRepository {
             if (season != null) updates.addProperty("season", season);
             if (style != null) updates.addProperty("style", style);
 
-            Response<JsonObject> response = supabase.updateOutfit(outfitId, updates).execute();
+            // ✅ FIXED: UPDATE operations use Response<List<JsonObject>>
+            Response<List<JsonObject>> response = supabase.updateOutfit(outfitId, updates).execute();
             return response.isSuccessful();
         } catch (Exception e) {
             e.printStackTrace();

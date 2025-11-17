@@ -157,11 +157,11 @@ public class CreateClosetActivity extends AppCompatActivity {
         closet.addProperty("image_uri", cloudImageUrl); // ✅ Now storing CLOUD URL
         closet.addProperty("created_at", new java.util.Date().toString());
 
-        // Save to Supabase
-        Call<JsonObject> call = supabaseService.insertCloset(closet);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Changed to List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.insertCloset(closet);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 runOnUiThread(() -> {
                     Button btnDone = findViewById(R.id.btnDone);
                     btnDone.setEnabled(true);
@@ -177,7 +177,7 @@ public class CreateClosetActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 runOnUiThread(() -> {
                     Button btnDone = findViewById(R.id.btnDone);
                     btnDone.setEnabled(true);

@@ -126,15 +126,18 @@ public class AdminUserAdapter extends RecyclerView.Adapter<AdminUserAdapter.User
             }
         });
 
-        // ✅ Create Outfit → PASS USERNAME TO CREATE OUTFIT ACTIVITY
+        // ✅ Create Outfit → PASS BOTH USER ID AND USERNAME TO CREATE OUTFIT ACTIVITY
         holder.btnCreateOutfit.setOnClickListener(v -> {
+            String outfitUserId = getSafeString(user, "id", "");
             String outfitUsername = getSafeString(user, "username", "");
-            if (!outfitUsername.isEmpty()) {
+
+            if (!outfitUserId.isEmpty() && !outfitUsername.isEmpty()) {
                 Intent intent = new Intent(context, UserAdminCreateOutfitActivity.class);
-                intent.putExtra("username", outfitUsername); // ✅ PASS USERNAME
+                intent.putExtra("user_id", outfitUserId); // ✅ CRITICAL: Add this line
+                intent.putExtra("username", outfitUsername);
                 context.startActivity(intent);
             } else {
-                Toast.makeText(context, "Cannot create outfit: Username not found", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Cannot create outfit: User information incomplete", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -2,6 +2,7 @@ package com.example.outpick.common;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -415,13 +416,18 @@ public class PreviewImageActivity extends AppCompatActivity {
         // Generate a name for the item
         String itemName = selectedSubCategory + " Item";
 
+        // ✅ GET THE CURRENT USER'S ID FOR THEIR CLOSET
+        String currentUserId = getCurrentUserId();
+
+        // Use user ID for the clothing item
         new Thread(() -> {
-            boolean success = clothingRepository.addClothingItem(
+            boolean success = clothingRepository.addClothingItemWithUserId(
                     itemName,
-                    cloudImageUrl, // Use CLOUD URL instead of local path
+                    cloudImageUrl,
                     category,
                     season,
-                    occasion
+                    occasion,
+                    currentUserId // ✅ PASS USER ID
             );
 
             runOnUiThread(() -> {
@@ -430,7 +436,7 @@ public class PreviewImageActivity extends AppCompatActivity {
                 saveButton.setText("Save");
 
                 if (success) {
-                    Toast.makeText(this, "Clothing item saved to cloud!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Clothing item saved to your closet!", Toast.LENGTH_SHORT).show();
 
                     // Refresh the repository cache
                     clothingRepository.getAllClothing();
@@ -447,6 +453,13 @@ public class PreviewImageActivity extends AppCompatActivity {
                 }
             });
         }).start();
+    }
+
+    // ✅ ADD THIS METHOD TO GET CURRENT USER ID
+    private String getCurrentUserId() {
+        // Get from SharedPreferences or wherever you store user session
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        return prefs.getString("user_id", null);
     }
 
     private void removeBackgroundWithRemoveBg(Uri imageUri) {

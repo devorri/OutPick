@@ -173,10 +173,11 @@ public class OutfitSuggestionAdapter extends RecyclerView.Adapter<OutfitSuggesti
         favorite.addProperty("user_id", currentUserId);
         favorite.addProperty("outfit_id", outfitId);
 
-        Call<JsonObject> call = supabaseService.addFavorite(favorite);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Changed to List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.addFavorite(favorite);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(context, "Added to favorites", Toast.LENGTH_SHORT).show();
                 } else {
@@ -188,7 +189,7 @@ public class OutfitSuggestionAdapter extends RecyclerView.Adapter<OutfitSuggesti
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 Toast.makeText(context, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 // Revert UI state
                 outfitList.get(holder.getAdapterPosition()).setFavorite(false);

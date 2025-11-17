@@ -139,11 +139,11 @@ public class ChangePasswordActivity extends AppCompatActivity {
         JsonObject updates = new JsonObject();
         updates.addProperty("password", newPassword);
 
-        // Update password in Supabase
-        Call<JsonObject> updateCall = supabaseService.updateUser(currentUsername, updates);
-        updateCall.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
+        Call<List<JsonObject>> updateCall = supabaseService.updateUser(currentUsername, updates);
+        updateCall.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(ChangePasswordActivity.this, "Password changed successfully", Toast.LENGTH_SHORT).show();
                     finish();
@@ -154,7 +154,7 @@ public class ChangePasswordActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 Toast.makeText(ChangePasswordActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Network error updating password: " + t.getMessage());
             }

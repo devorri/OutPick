@@ -22,6 +22,9 @@ public class ClothingItem implements Serializable {
     private String closetName;
     private int mockDrawableId;
 
+    // ✅ NEW: User relationship field
+    private String userId;
+
     // === Constructors ===
 
     // Default empty constructor
@@ -31,6 +34,7 @@ public class ClothingItem implements Serializable {
         this.isFavorite = false;
         this.name = "Unnamed Item";
         this.id = "";
+        this.userId = "";
     }
 
     // Full constructor with String ID
@@ -44,6 +48,7 @@ public class ClothingItem implements Serializable {
         this.isSelected = false;
         this.season = "All-Season";
         this.occasion = "Casual";
+        this.userId = "";
     }
 
     // Constructor for mock data
@@ -58,6 +63,7 @@ public class ClothingItem implements Serializable {
         this.isFavorite = false;
         this.occasion = "Casual";
         this.season = "All-Season";
+        this.userId = "";
     }
 
     // Constructor without ID
@@ -71,12 +77,10 @@ public class ClothingItem implements Serializable {
         this.closetName = "My Closet";
         this.name = "Unnamed Item";
         this.id = "";
+        this.userId = "";
     }
 
-    // Constructor with closetName
-
-
-    // Full constructor with ID and occasion (FIXED: Removed duplicate)
+    // Full constructor with ID and occasion
     public ClothingItem(String id, String imagePath, String category, String season, String occasion) {
         this.id = id;
         this.imagePath = imagePath;
@@ -87,6 +91,7 @@ public class ClothingItem implements Serializable {
         this.isFavorite = false;
         this.closetName = "My Closet";
         this.name = "Item " + id;
+        this.userId = "";
     }
 
     // Full constructor for retrieving from DB with closetName
@@ -100,6 +105,21 @@ public class ClothingItem implements Serializable {
         this.isSelected = false;
         this.isFavorite = false;
         this.name = "Item " + id;
+        this.userId = "";
+    }
+
+    // ✅ NEW: Constructor with userId
+    public ClothingItem(String id, String imagePath, String category, String season, String occasion, String closetName, String userId) {
+        this.id = id;
+        this.imagePath = imagePath;
+        this.category = category;
+        this.season = season;
+        this.occasion = occasion;
+        this.closetName = closetName;
+        this.userId = userId;
+        this.isSelected = false;
+        this.isFavorite = false;
+        this.name = "Item " + id;
     }
 
     // Minimal constructor with only image
@@ -110,6 +130,7 @@ public class ClothingItem implements Serializable {
         this.closetName = "My Closet";
         this.name = "Unnamed Item";
         this.id = "";
+        this.userId = "";
     }
 
     // Full constructor with closetName, season, category and selection
@@ -122,6 +143,7 @@ public class ClothingItem implements Serializable {
         this.isFavorite = false;
         this.closetName = closetName;
         this.name = "Item " + id;
+        this.userId = "";
     }
 
     // === Getters ===
@@ -180,6 +202,11 @@ public class ClothingItem implements Serializable {
         return closetName;
     }
 
+    // ✅ NEW: Getter for userId
+    public String getUserId() {
+        return userId;
+    }
+
     // === Setters ===
     public void setId(String id) {
         this.id = id;
@@ -228,6 +255,11 @@ public class ClothingItem implements Serializable {
         this.closetName = closetName;
     }
 
+    // ✅ NEW: Setter for userId
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     @Override
     public String toString() {
         return "ClothingItem{" +
@@ -240,6 +272,7 @@ public class ClothingItem implements Serializable {
                 ", occasion='" + occasion + '\'' +
                 ", isSelected=" + isSelected +
                 ", closetName='" + closetName + '\'' +
+                ", userId='" + userId + '\'' + // ✅ ADDED userId to toString
                 '}';
     }
 }

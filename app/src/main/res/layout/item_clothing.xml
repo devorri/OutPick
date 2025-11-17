@@ -21,7 +21,7 @@
 
             <!-- Clothing Image -->
             <ImageView
-                android:id="@+id/clothing_image"
+                android:id="@+id/clothingImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
@@ -29,7 +29,7 @@
                 android:contentDescription="Clothing Image"
                 android:background="@drawable/border_gray_rounded" />
 
-            <!-- Top-left checkbox -->
+            <!-- Selection Checkbox -->
             <CheckBox
                 android:id="@+id/checkbox_selection"
                 android:layout_width="24dp"
@@ -39,7 +39,27 @@
                 android:buttonTint="@color/black"
                 android:background="@drawable/circle_background"
                 android:visibility="gone" />
+
+            <!-- Selection Overlay -->
+            <View
+                android:id="@+id/selectionOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#8000FF00"
+                android:visibility="gone" />
         </FrameLayout>
+
+        <!-- Clothing Name -->
+        <TextView
+            android:id="@+id/clothingName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Item Name"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#222222"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="6dp" />
 
         <!-- Category Text -->
         <TextView
@@ -47,10 +67,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Category"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="#222222"
-            android:layout_marginTop="8dp"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="2dp"
             android:layout_marginStart="6dp" />
 
         <!-- Season Text -->
@@ -65,18 +84,16 @@
             android:layout_marginBottom="6dp"
             android:layout_marginStart="6dp" />
 
+        <!-- Occasion Text -->
         <TextView
             android:id="@+id/clothing_occasion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Occasion"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="#222222"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="6dp" >
-        </TextView>
-
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="2dp"
+            android:layout_marginStart="6dp" />
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

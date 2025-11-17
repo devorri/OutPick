@@ -52,7 +52,7 @@ public class UserOutfitRepository {
             assignment.addProperty("created_by", assignedBy);
             assignment.addProperty("is_suggestion", true);
 
-            Response<JsonObject> response = supabase.assignOutfitToUser(assignment).execute();
+            Response<List<JsonObject>> response = supabase.assignOutfitToUser(assignment).execute();
             return response.isSuccessful();
         } catch (Exception e) {
             e.printStackTrace();

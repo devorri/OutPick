@@ -274,10 +274,10 @@ public class SuggestionAdapter extends RecyclerView.Adapter<SuggestionAdapter.Vi
         favorite.addProperty("user_id", currentUserId);
         favorite.addProperty("outfit_id", outfit.getId());
 
-        Call<JsonObject> call = supabaseService.addFavorite(favorite);
-        call.enqueue(new Callback<JsonObject>() {
+        Call<List<JsonObject>> call = supabaseService.addFavorite(favorite);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
+            public void onResponse(@NonNull Call<List<JsonObject>> call, @NonNull Response<List<JsonObject>> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(context, "Added to favorites", Toast.LENGTH_SHORT).show();
                 } else {
@@ -289,7 +289,7 @@ public class SuggestionAdapter extends RecyclerView.Adapter<SuggestionAdapter.Vi
             }
 
             @Override
-            public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<JsonObject>> call, @NonNull Throwable t) {
                 // Revert on failure
                 outfit.setFavorite(false);
                 holder.btnFavorite.setImageResource(R.drawable.ic_favorite_border);

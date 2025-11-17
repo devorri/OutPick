@@ -181,23 +181,24 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    // Update last login in Supabase
+    // Update last login in Supabase - FIXED VERSION
     private void updateLastLoginInSupabase(String username) {
         JsonObject updates = new JsonObject();
         updates.addProperty("last_login", new java.util.Date().toString());
         updates.addProperty("status", "Active");
 
-        Call<JsonObject> call = supabaseService.updateUser(username, updates);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.updateUser(username, updates);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (!response.isSuccessful()) {
                     Log.w(TAG, "Failed to update last login in Supabase");
                 }
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 Log.w(TAG, "Network error updating last login: " + t.getMessage());
             }
         });

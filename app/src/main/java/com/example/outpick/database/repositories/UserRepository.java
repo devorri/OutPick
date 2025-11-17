@@ -35,8 +35,8 @@ public class UserRepository {
             user.addProperty("last_logout", "N/A");
             user.addProperty("suspended", false);
 
-            // FIX: Changed to Response<JsonObject> to match SupabaseService
-            Response<JsonObject> response = supabase.insertUser(user).execute();
+            // ✅ FIXED: Use Response<List<JsonObject>> for insert operations
+            Response<List<JsonObject>> response = supabase.insertUser(user).execute();
             return response.isSuccessful();
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,10 +63,10 @@ public class UserRepository {
             user.addProperty("last_logout", "N/A");
             user.addProperty("suspended", false);
 
-            // FIX: Changed to Response<JsonObject>
-            Response<JsonObject> response = supabase.insertUser(user).execute();
-            if (response.isSuccessful() && response.body() != null) {
-                return response.body(); // Return the created user
+            // ✅ FIXED: Use Response<List<JsonObject>> for insert operations
+            Response<List<JsonObject>> response = supabase.insertUser(user).execute();
+            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                return response.body().get(0); // Return the first created user
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -76,6 +76,7 @@ public class UserRepository {
 
     public boolean checkUsernameExists(String username) {
         try {
+            // ✅ FIXED: Use Response<List<JsonObject>> for GET operations
             Response<List<JsonObject>> response = supabase.getUserByUsername(username).execute();
             return response.isSuccessful() && response.body() != null && !response.body().isEmpty();
         } catch (Exception e) {
@@ -86,6 +87,7 @@ public class UserRepository {
 
     public boolean checkEmailExists(String email) {
         try {
+            // ✅ FIXED: Use Response<List<JsonObject>> for GET operations
             Response<List<JsonObject>> response = supabase.getUserByEmail(email).execute();
             return response.isSuccessful() && response.body() != null && !response.body().isEmpty();
         } catch (Exception e) {
@@ -96,6 +98,7 @@ public class UserRepository {
 
     public JsonObject loginUser(String username, String password) {
         try {
+            // ✅ FIXED: Use Response<List<JsonObject>> for GET operations
             Response<List<JsonObject>> response = supabase.getUserByUsername(username).execute();
             if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                 JsonObject user = response.body().get(0);
@@ -120,7 +123,8 @@ public class UserRepository {
                 updates.addProperty("last_logout", getCurrentDateTime());
             }
 
-            Response<JsonObject> response = supabase.updateUser(username, updates).execute();
+            // ✅ FIXED: Use Response<List<JsonObject>> for UPDATE operations
+            Response<List<JsonObject>> response = supabase.updateUser(username, updates).execute();
             return response.isSuccessful();
         } catch (Exception e) {
             e.printStackTrace();
@@ -131,8 +135,11 @@ public class UserRepository {
     // NEW: Method to get user by ID with password for UserEditActivity
     public JsonObject getUserWithPassword(String userId) {
         try {
-            // Use the new method that explicitly requests password field
-            Response<List<JsonObject>> response = supabase.getUserByIdWithPassword(userId, "*,password").execute();
+            // ✅ FIXED: Use the RPC method that includes password
+            JsonObject params = new JsonObject();
+            params.addProperty("user_id", userId);
+
+            Response<List<JsonObject>> response = supabase.getUserByIdWithPasswordRpc(params).execute();
             if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                 return response.body().get(0);
             }

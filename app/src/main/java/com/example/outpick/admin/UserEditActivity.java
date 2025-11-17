@@ -270,11 +270,13 @@ public class UserEditActivity extends AppCompatActivity {
 
         Log.d(TAG, "Saving user updates: " + updates.toString());
 
-        // Update user in Supabase
-        Call<JsonObject> call = supabaseService.updateUserById(userId, updates);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ RELIABLE APPROACH: Using URL encoding with proper Supabase filter syntax
+        String url = "users?id=eq." + userId;
+        Call<List<JsonObject>> call = supabaseService.updateUserById(url, updates);
+
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (response.isSuccessful()) {
                     Log.d(TAG, "User updated successfully");
                     Toast.makeText(UserEditActivity.this, "User updated successfully!", Toast.LENGTH_SHORT).show();
@@ -284,17 +286,20 @@ public class UserEditActivity extends AppCompatActivity {
                     String errorMessage = "Failed to update user";
                     try {
                         if (response.errorBody() != null) {
-                            errorMessage = "Error: " + response.code() + " - " + response.errorBody().string();
+                            String errorBody = response.errorBody().string();
+                            errorMessage = "Error: " + response.code() + " - " + errorBody;
+                            Log.e(TAG, "Update error: " + errorBody);
                         }
                     } catch (Exception e) {
                         errorMessage = "Error: " + response.code();
+                        Log.e(TAG, "Error parsing error response: " + e.getMessage());
                     }
                     Toast.makeText(UserEditActivity.this, errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 Log.e(TAG, "Error updating user: " + t.getMessage());
                 Toast.makeText(UserEditActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }

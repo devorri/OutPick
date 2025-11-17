@@ -232,10 +232,10 @@ public class OutfitSuggestionDetailsActivity extends AppCompatActivity {
         favorite.addProperty("user_id", currentUserId);
         favorite.addProperty("outfit_id", outfitId);
 
-        Call<JsonObject> call = supabaseService.addFavorite(favorite);
-        call.enqueue(new Callback<JsonObject>() {
+        Call<List<JsonObject>> call = supabaseService.addFavorite(favorite);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(OutfitSuggestionDetailsActivity.this,
                             "Outfit added to Favorites!", Toast.LENGTH_SHORT).show();
@@ -249,7 +249,7 @@ public class OutfitSuggestionDetailsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 Toast.makeText(OutfitSuggestionDetailsActivity.this,
                         "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 // Revert UI state on failure

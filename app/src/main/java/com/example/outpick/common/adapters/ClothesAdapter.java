@@ -36,12 +36,21 @@ public class ClothesAdapter extends RecyclerView.Adapter<ClothesAdapter.ViewHold
     public void onBindViewHolder(ViewHolder holder, int position) {
         ClothingItem item = clothingList.get(position);
 
-        Glide.with(context)
-                .load(Uri.parse(item.getImageUri()))
-                .into(holder.imageView);
+        // ✅ FIXED: Use getImagePath() instead of getImageUri()
+        if (item.getImagePath() != null && !item.getImagePath().isEmpty()) {
+            Glide.with(context)
+                    .load(item.getImagePath())
+                    .into(holder.imageView);
+        }
 
         holder.categoryText.setText(item.getCategory());
         holder.seasonText.setText(item.getSeason());
+        holder.occasionText.setText(item.getOccasion());
+
+        // ✅ Set clothing name if available
+        if (holder.nameText != null && item.getName() != null) {
+            holder.nameText.setText(item.getName());
+        }
     }
 
     @Override
@@ -51,13 +60,16 @@ public class ClothesAdapter extends RecyclerView.Adapter<ClothesAdapter.ViewHold
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
-        TextView categoryText, seasonText;
+        TextView categoryText, seasonText, occasionText, nameText;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.clothing_image);
+            // ✅ FIXED: Match the IDs from the updated XML
+            imageView = itemView.findViewById(R.id.clothingImage); // Changed from clothing_image
             categoryText = itemView.findViewById(R.id.clothing_category);
             seasonText = itemView.findViewById(R.id.clothing_season);
+            occasionText = itemView.findViewById(R.id.clothing_occasion);
+            nameText = itemView.findViewById(R.id.clothingName); // Added this
         }
     }
 }

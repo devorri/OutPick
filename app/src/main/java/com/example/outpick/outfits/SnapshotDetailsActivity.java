@@ -403,10 +403,11 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
         history.addProperty("date_used", date);
         history.addProperty("action_taken", action);
 
-        Call<JsonObject> call = supabaseService.insertOutfitHistory(history);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Changed to List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.insertOutfitHistory(history);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(SnapshotDetailsActivity.this, "Outfit marked as 'Used' and added to history!", Toast.LENGTH_SHORT).show();
                 } else {
@@ -416,7 +417,7 @@ public class SnapshotDetailsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 Toast.makeText(SnapshotDetailsActivity.this, "Network error adding to history", Toast.LENGTH_SHORT).show();
                 updateUseButtonText();
             }

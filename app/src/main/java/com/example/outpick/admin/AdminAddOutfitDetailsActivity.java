@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -345,11 +346,11 @@ public class AdminAddOutfitDetailsActivity extends AppCompatActivity {
         outfitJson.addProperty("styles", styles);
         outfitJson.addProperty("created_at", new java.util.Date().toString());
 
-        // Save to Supabase
-        Call<JsonObject> call = supabaseService.insertOutfit(outfitJson);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Changed to List<JsonObject>
+        Call<List<JsonObject>> call = supabaseService.insertOutfit(outfitJson);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 runOnUiThread(() -> {
                     if (response.isSuccessful()) {
                         Toast.makeText(AdminAddOutfitDetailsActivity.this,
@@ -371,7 +372,7 @@ public class AdminAddOutfitDetailsActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 runOnUiThread(() -> {
                     Toast.makeText(AdminAddOutfitDetailsActivity.this,
                             "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();

@@ -252,7 +252,9 @@ public class YourClothesActivity extends BaseDrawerActivity implements FilterBot
         recyclerView.setVisibility(View.VISIBLE);
 
         new Thread(() -> {
-            List<ClothingItem> items = clothingRepository.getAllClothing();
+            // ✅ GET ONLY CURRENT USER'S CLOTHES
+            String currentUserId = getCurrentUserId();
+            List<ClothingItem> items = clothingRepository.getClothingByUserId(currentUserId);
 
             runOnUiThread(() -> {
                 if (items != null) {
@@ -265,17 +267,22 @@ public class YourClothesActivity extends BaseDrawerActivity implements FilterBot
                     filterAndDisplay();
 
                     if (allClothingItems.isEmpty()) {
-                        showToast("No clothing items found");
+                        showToast("No clothing items found in your closet");
                     } else {
-                        showToast("Loaded " + allClothingItems.size() + " items");
+                        showToast("Loaded " + allClothingItems.size() + " items from your closet");
                     }
                 } else {
-                    showToast("Failed to load clothing items");
-                    // Show empty state on error
+                    showToast("Failed to load your clothing items");
                     updateUI(new ArrayList<>());
                 }
             });
         }).start();
+    }
+
+    // ✅ ADD THIS METHOD TO GET CURRENT USER ID
+    private String getCurrentUserId() {
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        return prefs.getString("user_id", null);
     }
 
     // ✅ FIXED: More robust tab visibility detection for category changes

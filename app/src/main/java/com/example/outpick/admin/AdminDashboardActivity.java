@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -19,6 +20,8 @@ import com.example.outpick.database.supabase.SupabaseService;
 import com.google.android.material.navigation.NavigationView;
 import com.google.gson.JsonObject;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -28,6 +31,7 @@ public class AdminDashboardActivity extends BaseDrawerAdminActivity {
     private CardView cardUsers, cardContent, cardActivity, cardAddOutfit;
     private String currentUsername; // store logged-in admin username
     private SupabaseService supabaseService;
+    private static final String TAG = "AdminDashboardActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,24 +116,28 @@ public class AdminDashboardActivity extends BaseDrawerAdminActivity {
         JsonObject updates = new JsonObject();
         updates.addProperty("last_logout", new java.util.Date().toString());
 
-        // Update the user's last_logout in Supabase
-        Call<JsonObject> call = supabaseService.updateUser(currentUsername, updates);
-        call.enqueue(new Callback<JsonObject>() {
+        // ✅ FIXED: Use the corrected method that returns List<JsonObject>
+        String url = "users?username=eq." + currentUsername;
+        Call<List<JsonObject>> call = supabaseService.updateUserById(url, updates);
+        call.enqueue(new Callback<List<JsonObject>>() {
             @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+            public void onResponse(Call<List<JsonObject>> call, Response<List<JsonObject>> response) {
                 if (response.isSuccessful()) {
+                    Log.d(TAG, "Successfully updated logout timestamp");
                     // Successfully updated last logout, proceed with logout
                     performLogout();
                 } else {
                     // If update fails, still proceed with logout but show message
+                    Log.e(TAG, "Failed to update logout timestamp: " + response.code());
                     Toast.makeText(AdminDashboardActivity.this, "Error updating logout time", Toast.LENGTH_SHORT).show();
                     performLogout();
                 }
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
+            public void onFailure(Call<List<JsonObject>> call, Throwable t) {
                 // If network error, still proceed with logout
+                Log.e(TAG, "Network error updating logout: " + t.getMessage());
                 Toast.makeText(AdminDashboardActivity.this, "Network error during logout", Toast.LENGTH_SHORT).show();
                 performLogout();
             }
