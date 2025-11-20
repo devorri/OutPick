@@ -197,16 +197,32 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
     private void loadOutfitsFromSupabase() {
         new Thread(() -> {
             try {
-                // ✅ FIXED: Get ALL outfits for filtering
-                List<Outfit> allOutfits = outfitRepository.getAllOutfits();
+                // Get user-specific outfits
+                List<Outfit> userOutfits = new ArrayList<>();
+
+                if (!currentUserId.isEmpty()) {
+                    userOutfits = userOutfitRepository.getOutfitsForUser(currentUserId);
+                    Log.d(TAG, "✅ Loaded " + userOutfits.size() + " user-specific outfits");
+                }
+
+                final List<Outfit> finalUserOutfits = userOutfits; // Create final copy
 
                 runOnUiThread(() -> {
+                    if (finalUserOutfits.isEmpty()) {
+                        TextView tvNoOutfits = findViewById(R.id.tvNoOutfits);
+                        if (tvNoOutfits != null) {
+                            tvNoOutfits.setVisibility(View.VISIBLE);
+                            tvNoOutfits.setText("No outfits assigned to your account yet.");
+                        }
+                        Toast.makeText(OutfitSuggestionActivity.this, "No outfits available. Ask admin to assign some outfits.", Toast.LENGTH_LONG).show();
+                    }
                     // Store outfits for filtering
                     applyLastFiltersInternally();
                 });
             } catch (Exception e) {
+                Log.e(TAG, "❌ Error loading outfits: " + e.getMessage());
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Error loading outfits: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(OutfitSuggestionActivity.this, "Error loading outfits: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
         }).start();
@@ -234,46 +250,18 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
         }).start();
     }
 
-    // ---------------- APPLY FILTERS WITH USER GENDER + ADMIN-CREATED OUTFITS ----------------
+    // ---------------- APPLY FILTERS TO USER-SPECIFIC OUTFITS ----------------
     private void applyLastFiltersInternally() {
         new Thread(() -> {
             try {
-                // ✅ FIXED: Get BOTH types of outfits
-                List<Outfit> allOutfits = outfitRepository.getAllOutfits();
-                List<Outfit> userAssignedOutfits = new ArrayList<>();
+                // Get ONLY user-specific outfits
+                List<Outfit> userOutfits = new ArrayList<>();
 
                 if (!currentUserId.isEmpty()) {
-                    userAssignedOutfits = userOutfitRepository.getOutfitsForUser(currentUserId);
+                    userOutfits = userOutfitRepository.getOutfitsForUser(currentUserId);
                 }
 
-                // Combine both lists - user should see outfits that either:
-                // 1. Match their gender OR 2. Were specifically assigned to them (admin-created)
-                Set<String> seenOutfitIds = new HashSet<>();
-                List<Outfit> combinedOutfits = new ArrayList<>();
-
-                String normalizedUserGender = userGender != null ? userGender.trim().toLowerCase() : "";
-
-                // First add user's assigned outfits (admin-created ones)
-                for (Outfit outfit : userAssignedOutfits) {
-                    if (outfit.getId() != null && !seenOutfitIds.contains(outfit.getId())) {
-                        combinedOutfits.add(outfit);
-                        seenOutfitIds.add(outfit.getId());
-                        Log.d(TAG, "✅ Added user-assigned outfit: " + outfit.getName());
-                    }
-                }
-
-                // Then add outfits from main collection that match gender
-                for (Outfit outfit : allOutfits) {
-                    if (outfit.getId() != null && !seenOutfitIds.contains(outfit.getId())) {
-                        if (genderMatches(outfit.getGender(), normalizedUserGender)) {
-                            combinedOutfits.add(outfit);
-                            seenOutfitIds.add(outfit.getId());
-                            Log.d(TAG, "✅ Added gender-matched outfit: " + outfit.getName());
-                        }
-                    }
-                }
-
-                // Apply filters to the combined list
+                // Apply filters to user-specific outfits only
                 List<Outfit> filtered = new ArrayList<>();
 
                 Set<String> categories = lastSelectedCategories.stream().map(String::toLowerCase).collect(Collectors.toSet());
@@ -284,26 +272,29 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
 
                 boolean canCheckFavorites = !currentUserId.isEmpty();
 
-                for (Outfit o : combinedOutfits) {
-                    if (o.getImageUri() == null || o.getImageUri().trim().isEmpty()) continue;
+                for (Outfit o : userOutfits) {
+                    // ✅ ADDED: Only show suggested outfits (from admin)
+                    if (o.isSuggestion()) {
+                        if (o.getImageUri() == null || o.getImageUri().trim().isEmpty()) continue;
 
-                    // Load favorite status
-                    if (canCheckFavorites) {
-                        boolean isFav = isOutfitFavoriteInSupabase(o.getId());
-                        o.setFavorite(isFav);
-                    } else {
-                        o.setFavorite(false);
-                    }
+                        // Load favorite status
+                        if (canCheckFavorites) {
+                            boolean isFav = isOutfitFavoriteInSupabase(o.getId());
+                            o.setFavorite(isFav);
+                        } else {
+                            o.setFavorite(false);
+                        }
 
-                    // Apply general filters
-                    if (filterMatches(o, categories, genders, events, seasons, styles, lastSearchKeyword)) {
-                        filtered.add(o);
+                        // Apply general filters
+                        if (filterMatches(o, categories, genders, events, seasons, styles, lastSearchKeyword)) {
+                            filtered.add(o);
+                        }
                     }
                 }
 
                 Collections.sort(filtered, Comparator.comparing(o -> o.getName().toLowerCase()));
 
-                Log.d(TAG, "📊 FINAL: Showing " + filtered.size() + " outfits (assigned: " + userAssignedOutfits.size() + ", gender-matched: " + (filtered.size() - userAssignedOutfits.size()) + ")");
+                Log.d(TAG, "📊 FINAL: Showing " + filtered.size() + " suggested outfits");
 
                 runOnUiThread(() -> updateRecyclerView(filtered));
 
@@ -314,21 +305,6 @@ public class OutfitSuggestionActivity extends BaseDrawerActivity {
                 });
             }
         }).start();
-    }
-
-    private boolean genderMatches(String outfitGender, String userGender) {
-        if (outfitGender == null) return false;
-
-        String normalizedOutfitGender = outfitGender.trim().toLowerCase();
-        String normalizedUserGender = userGender != null ? userGender.trim().toLowerCase() : "";
-
-        // Unisex outfits match everyone
-        if (normalizedOutfitGender.equals("unisex")) {
-            return true;
-        }
-
-        // Gender-specific outfits only match the same gender
-        return normalizedOutfitGender.equals(normalizedUserGender);
     }
 
     private boolean isOutfitFavoriteInSupabase(String outfitId) {

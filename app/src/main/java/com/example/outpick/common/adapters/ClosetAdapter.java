@@ -23,6 +23,7 @@ import com.example.outpick.MainActivity;
 import com.example.outpick.R;
 import com.example.outpick.closet.ClosetDetailActivity;
 import com.example.outpick.closet.CreateClosetActivity;
+import com.example.outpick.closet.YourClothesActivity;
 import com.example.outpick.database.models.ClosetItem;
 import com.example.outpick.database.models.Outfit;
 import com.example.outpick.database.repositories.OutfitRepository;
@@ -41,8 +42,9 @@ import com.example.outpick.common.BaseDrawerActivity;
 public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int TYPE_OUTFIT = 0;
-    private static final int TYPE_CREATE = 1;
-    private static final int TYPE_DEFAULT = 2;
+    private static final int TYPE_ALL_CLOTHES = 1;
+    private static final int TYPE_CREATE = 2;
+    private static final int TYPE_DEFAULT = 3;
     private static final String TAG = "ClosetAdapter";
 
     private final MainActivity mainActivity;
@@ -70,6 +72,7 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public int getItemViewType(int position) {
         String type = closetList.get(position).getType();
         if ("outfit_card".equals(type)) return TYPE_OUTFIT;
+        if ("all_clothes_card".equals(type)) return TYPE_ALL_CLOTHES;
         if ("create_card".equals(type)) return TYPE_CREATE;
         return TYPE_DEFAULT;
     }
@@ -82,6 +85,9 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         if (viewType == TYPE_OUTFIT) {
             View view = inflater.inflate(R.layout.item_outfit_combination, parent, false);
             return new OutfitViewHolder(view);
+        } else if (viewType == TYPE_ALL_CLOTHES) {
+            View view = inflater.inflate(R.layout.item_outfit_combination, parent, false);
+            return new AllClothesViewHolder(view);
         } else if (viewType == TYPE_CREATE) {
             View view = inflater.inflate(R.layout.item_create_closet, parent, false);
             return new CreateViewHolder(view);
@@ -120,6 +126,27 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
                 // Pass the immutable ID
                 intent.putExtra("username", immutableId);
+                mainActivity.startActivity(intent);
+            });
+
+        } else if (holder instanceof AllClothesViewHolder) {
+            AllClothesViewHolder h = (AllClothesViewHolder) holder;
+            h.outfitLabel.setText("All Clothes");
+
+            // Load clothing count for current user
+            loadClothingCountForCurrentUser(h);
+
+            h.plusBtn.setImageResource(R.drawable.ic_plus);
+            h.plusBtn.setBackgroundResource(R.drawable.circle_background_white);
+
+            h.plusBtn.setOnClickListener(v -> {
+                // Open Add Item activity directly for All Clothes
+                Intent intent = new Intent(mainActivity, com.example.outpick.closet.AddItemActivity.class);
+                mainActivity.startActivity(intent);
+            });
+
+            h.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(mainActivity, YourClothesActivity.class);
                 mainActivity.startActivity(intent);
             });
 
@@ -200,6 +227,37 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }).start();
     }
 
+    // ✅ NEW: Load clothing count for current user
+    private void loadClothingCountForCurrentUser(AllClothesViewHolder holder) {
+        if (currentUserId == null || currentUserId.isEmpty()) {
+            holder.outfitSub.setText("Tap to View");
+            return;
+        }
+
+        // Run in background thread
+        new Thread(() -> {
+            try {
+                // You'll need to implement this method in your ClothingRepository
+                // For now, we'll show a placeholder
+                int clothingCount = 0; // This should come from your repository
+
+                mainActivity.runOnUiThread(() -> {
+                    if (clothingCount > 0) {
+                        holder.outfitSub.setText(clothingCount + " Item" + (clothingCount > 1 ? "s" : ""));
+                    } else {
+                        holder.outfitSub.setText("Tap to View");
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading clothing count: " + e.getMessage());
+                mainActivity.runOnUiThread(() -> {
+                    holder.outfitSub.setText("Tap to View");
+                });
+            }
+        }).start();
+    }
+
     private void deleteClosetFromSupabase(ClosetItem closetItem, int position) {
         if (currentUserId.isEmpty()) {
             Toast.makeText(mainActivity, "User not logged in", Toast.LENGTH_SHORT).show();
@@ -211,7 +269,7 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         if (closetId == null || closetId.isEmpty()) {
             // For static cards or items without ID, just remove from UI
-            if ("outfit_card".equals(closetItem.getType()) || "create_card".equals(closetItem.getType())) {
+            if ("outfit_card".equals(closetItem.getType()) || "create_card".equals(closetItem.getType()) || "all_clothes_card".equals(closetItem.getType())) {
                 // These are static cards, just show message
                 Toast.makeText(mainActivity, "Cannot delete system item", Toast.LENGTH_SHORT).show();
                 return;
@@ -313,6 +371,18 @@ public class ClosetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         TextView outfitLabel, outfitSub;
 
         public OutfitViewHolder(@NonNull View itemView) {
+            super(itemView);
+            plusBtn = itemView.findViewById(R.id.img_plus);
+            outfitLabel = itemView.findViewById(R.id.text_outfit_title);
+            outfitSub = itemView.findViewById(R.id.text_outfit_sub);
+        }
+    }
+
+    static class AllClothesViewHolder extends RecyclerView.ViewHolder {
+        ImageView plusBtn;
+        TextView outfitLabel, outfitSub;
+
+        public AllClothesViewHolder(@NonNull View itemView) {
             super(itemView);
             plusBtn = itemView.findViewById(R.id.img_plus);
             outfitLabel = itemView.findViewById(R.id.text_outfit_title);

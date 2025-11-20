@@ -379,7 +379,7 @@ public class ClothingRepository {
     }
 
     /**
-     * Delete clothing item
+     * ✅ FIXED: Delete clothing item with proper PostgREST filter syntax
      */
     public boolean deleteClothing(String clothingId) {
         // Add parameter validation
@@ -389,7 +389,8 @@ public class ClothingRepository {
         }
 
         try {
-            Call<Void> call = supabaseService.deleteClothing(clothingId);
+            // ✅ FIXED: Use proper PostgREST filter syntax - this will create: clothing?id=eq.UUID
+            Call<Void> call = supabaseService.deleteClothing("eq." + clothingId);
             Response<Void> response = call.execute();
 
             boolean success = response.isSuccessful();

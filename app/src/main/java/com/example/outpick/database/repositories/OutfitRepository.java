@@ -1,5 +1,7 @@
 package com.example.outpick.database.repositories;
 
+import android.util.Log;
+
 import com.example.outpick.database.models.Outfit;
 import com.example.outpick.database.supabase.SupabaseService;
 import com.google.gson.JsonObject;
@@ -40,21 +42,38 @@ public class OutfitRepository {
      */
     public Outfit getOutfitById(String outfitId) {
         try {
-            Call<List<JsonObject>> call = supabase.getOutfits();
+            Log.d("OutfitRepo", "🔄 Fetching outfit by ID: " + outfitId);
+
+            // ✅ FIXED: Use the same custom approach
+            String filterUrl = "outfits?id=eq." + outfitId;
+            Call<List<JsonObject>> call = supabase.executeGet(filterUrl);
+            Log.d("OutfitRepo", "🔍 Outfit Request URL: " + call.request().url().toString());
+
             Response<List<JsonObject>> response = call.execute();
 
-            if (response.isSuccessful() && response.body() != null) {
-                for (JsonObject json : response.body()) {
-                    if (json.has("id") && json.get("id").getAsString().equals(outfitId)) {
-                        return convertJsonToOutfit(json);
+            Log.d("OutfitRepo", "🔍 Outfit Response - Code: " + response.code() + ", Success: " + response.isSuccessful());
+
+            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                JsonObject json = response.body().get(0);
+                Log.d("OutfitRepo", "✅ Found outfit: " + json.toString());
+                return convertJsonToOutfit(json);
+            } else {
+                Log.e("OutfitRepo", "❌ Outfit not found for ID: " + outfitId);
+                if (response.errorBody() != null) {
+                    try {
+                        Log.e("OutfitRepo", "❌ Outfit Error: " + response.errorBody().string());
+                    } catch (Exception e) {
+                        Log.e("OutfitRepo", "❌ Could not read outfit error body");
                     }
                 }
             }
         } catch (Exception e) {
+            Log.e("OutfitRepo", "❌ Error getting outfit by ID: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
+
 
     public List<Outfit> getOutfitsByCategory(String category) {
         List<Outfit> outfits = new ArrayList<>();
@@ -186,7 +205,7 @@ public class OutfitRepository {
                 outfit.setCategory(json.get("category").getAsString());
             }
 
-            // Handle both 'description' and 'occasion' fields - they might be used interchangeably
+            // Handle both 'description' and 'occasion' fields
             if (json.has("description") && !json.get("description").isJsonNull()) {
                 outfit.setDescription(json.get("description").getAsString());
             } else if (json.has("occasion") && !json.get("occasion").isJsonNull()) {
@@ -212,6 +231,13 @@ public class OutfitRepository {
                 outfit.setStyle(json.get("style").getAsString());
             }
 
+            // ✅ ADDED: Map is_suggestion field
+            if (json.has("is_suggestion") && !json.get("is_suggestion").isJsonNull()) {
+                outfit.setSuggestion(json.get("is_suggestion").getAsBoolean());
+            } else {
+                outfit.setSuggestion(false); // Default to false
+            }
+
             // Set default values if fields are missing or null
             if (outfit.getName() == null) outfit.setName("Unnamed Outfit");
             if (outfit.getCategory() == null) outfit.setCategory("General");
@@ -224,7 +250,7 @@ public class OutfitRepository {
             return outfit;
         } catch (Exception e) {
             e.printStackTrace();
-            return null; // Return null if conversion fails
+            return null;
         }
     }
 }

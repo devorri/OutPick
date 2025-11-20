@@ -2,6 +2,8 @@ package com.example.outpick.common.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +12,6 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.outpick.database.models.ClosetContentItem;
 import com.example.outpick.database.models.Outfit;
 import com.example.outpick.database.supabase.SupabaseClient;
@@ -20,6 +21,9 @@ import com.example.outpick.R;
 import com.example.outpick.outfits.SnapshotDetailsActivity;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.NetworkPolicy;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.util.HashSet;
@@ -30,17 +34,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-/**
- * Adapter for displaying ClosetContentItem (both CLOTHING + SNAPSHOT).
- *
- * Handles clothing + snapshots
- * Loads images with Glide
- * On click → opens SnapshotDetailsActivity for snapshots
- * Long press → enables multi-select mode
- * Dynamic styling for SNAPSHOT (light gray border) vs. CLOTHING (default rounded card)
- */
 public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.ViewHolder> {
 
+    private static final String TAG = "OutfitPathAdapter";
     private final Context context;
     private final List<ClosetContentItem> closetItems;
     private final SupabaseService supabaseService;
@@ -48,7 +44,6 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
     private boolean multiSelectEnabled = false;
     private final Set<Integer> selectedItems = new HashSet<>();
 
-    // Hardcoded padding values (in pixels) for dynamic adjustment.
     private static final int SNAPSHOT_PADDING_DP = 16;
     private static final int CLOTHING_PADDING_DP = 4;
 
@@ -58,7 +53,6 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
         this.supabaseService = SupabaseClient.getService();
     }
 
-    // Helper to convert DP to PX
     private int dpToPx(int dp) {
         return (int) (dp * context.getResources().getDisplayMetrics().density + 0.5f);
     }
@@ -74,36 +68,36 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ClosetContentItem item = closetItems.get(position);
 
+        Log.d(TAG, "Binding item: " + item.getName() + " | Type: " + item.getType() + " | Image: " +
+                (item.getType() == ClosetContentItem.ItemType.SNAPSHOT ? item.getSnapshotPath() : item.getImageUri()));
+
         // --- STYLING AND LOADING LOGIC ---
         if (item.getType() == ClosetContentItem.ItemType.CLOTHING) {
-            // CLOTHING: Use the default style defined in item_outfit_card
             holder.itemView.setBackground(null);
             holder.imageView.setBackgroundResource(R.drawable.bg_rounded_card);
             int padding = dpToPx(CLOTHING_PADDING_DP);
             holder.imageView.setPadding(padding, padding, padding, padding);
 
-            Glide.with(context)
-                    .load(item.getImageUri())
-                    .placeholder(R.drawable.placeholder_image)
-                    .error(R.drawable.error_image)
-                    .into(holder.imageView);
+            String imageUri = item.getImageUri();
+            if (imageUri != null && !imageUri.isEmpty()) {
+                loadImageWithPicasso(imageUri, holder.imageView);
+            } else {
+                holder.imageView.setImageResource(R.drawable.placeholder_image);
+            }
 
         } else if (item.getType() == ClosetContentItem.ItemType.SNAPSHOT) {
-            // SNAPSHOT: Apply custom light gray border card style
             holder.itemView.setBackgroundResource(R.drawable.bg_snapshot_border_card);
             holder.imageView.setBackground(null);
             int padding = dpToPx(SNAPSHOT_PADDING_DP);
             holder.imageView.setPadding(padding, padding, padding, padding);
 
-            String path = item.getSnapshotPath();
-            File f = new File(path);
-            Glide.with(context)
-                    .load(f.exists() ? f : path)
-                    .placeholder(R.drawable.placeholder_image)
-                    .error(R.drawable.error_image)
-                    .into(holder.imageView);
+            String imageUri = item.getSnapshotPath();
+            if (imageUri != null && !imageUri.isEmpty()) {
+                loadImageWithPicasso(imageUri, holder.imageView);
+            } else {
+                holder.imageView.setImageResource(R.drawable.placeholder_image);
+            }
         }
-        // --- END STYLING AND LOADING LOGIC ---
 
         // Multi-select UI
         if (multiSelectEnabled) {
@@ -120,20 +114,18 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
             holder.checkIcon.setVisibility(View.GONE);
         }
 
-        // Normal click or multi-select toggle
+        // Click listeners
         holder.itemView.setOnClickListener(v -> {
             if (multiSelectEnabled) {
                 toggleSelection(position);
             } else {
                 if (item.getType() == ClosetContentItem.ItemType.SNAPSHOT) {
-                    // Open snapshot details - load outfit data from Supabase
                     String clickedPath = item.getSnapshotPath();
                     loadOutfitFromSupabase(clickedPath, position);
                 }
             }
         });
 
-        // Long press → enable multi-select
         holder.itemView.setOnLongClickListener(v -> {
             if (!multiSelectEnabled) {
                 enableMultiSelect();
@@ -144,9 +136,28 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
         });
     }
 
+    private void loadImageWithPicasso(String imageUrl, ImageView imageView) {
+        try {
+            // Add cache busting parameter
+            String cacheBusterUrl = imageUrl + "?t=" + System.currentTimeMillis();
+
+            Picasso.get()
+                    .load(cacheBusterUrl)
+                    .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+                    .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                    .placeholder(R.drawable.placeholder_image)
+                    .error(R.drawable.error_image)
+                    .into(imageView);
+
+            Log.d(TAG, "Loading image with Picasso: " + cacheBusterUrl);
+        } catch (Exception e) {
+            Log.e(TAG, "Picasso load error: " + e.getMessage());
+            imageView.setImageResource(R.drawable.error_image);
+        }
+    }
+
     private void loadOutfitFromSupabase(String snapshotPath, int position) {
-        // Query Supabase for outfit with matching image path
-        Call<List<JsonObject>> call = supabaseService.getOutfits(); // We'll filter client-side for now
+        Call<List<JsonObject>> call = supabaseService.getOutfits();
 
         call.enqueue(new Callback<List<JsonObject>>() {
             @Override
@@ -155,14 +166,12 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
                     Outfit outfit = findOutfitByPath(response.body(), snapshotPath);
                     openSnapshotDetails(snapshotPath, outfit, position);
                 } else {
-                    // If no outfit found, open with basic info
                     openSnapshotDetails(snapshotPath, null, position);
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<JsonObject>> call, @NonNull Throwable t) {
-                // On network failure, open with basic info
                 openSnapshotDetails(snapshotPath, null, position);
             }
         });
@@ -174,7 +183,6 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
         for (JsonObject jsonObject : outfitJsonList) {
             try {
                 Outfit outfit = gson.fromJson(jsonObject, Outfit.class);
-                // Check if the outfit's image URI matches our snapshot path
                 if (outfit != null && snapshotPath.equals(outfit.getImageUri())) {
                     return outfit;
                 }
@@ -218,7 +226,6 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
         return closetItems.size();
     }
 
-    // === Multi-select APIs ===
     private void toggleSelection(int position) {
         if (selectedItems.contains(position)) {
             selectedItems.remove(position);
@@ -244,7 +251,6 @@ public class OutfitPathAdapter extends RecyclerView.Adapter<OutfitPathAdapter.Vi
         return selectedItems;
     }
 
-    // === ViewHolder ===
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         View selectionOverlay;

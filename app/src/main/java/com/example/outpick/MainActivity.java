@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.outpick.closet.AddItemActivity;
+import com.example.outpick.closet.YourClothesActivity;
 import com.example.outpick.common.BaseDrawerActivity;
 import com.example.outpick.common.PreviewImageActivity;
 import com.example.outpick.common.adapters.ClosetAdapter;
@@ -289,7 +290,7 @@ public class MainActivity extends BaseDrawerActivity {
     private void setupClosetAdapter(RecyclerView recyclerView, List<ClosetItem> userClosets) {
         Log.d("MainActivity", "🎯 Setting up adapter with " + userClosets.size() + " user closets");
 
-        // ✅ KEEP THE 2 CARDS: Build the final display list, starting with the two static cards
+        // ✅ UPDATED: Now 3 static cards + user closets
         List<ClosetItem> fullList = new ArrayList<>();
 
         // Card 1: Outfit Combinations
@@ -297,7 +298,12 @@ public class MainActivity extends BaseDrawerActivity {
                 String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.top_test3)),
                 "outfit_card"));
 
-        // Card 2: Create a closet
+        // Card 2: All Clothes (NEW)
+        fullList.add(new ClosetItem("All Clothes", "",
+                String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.ic_all_clothes)),
+                "all_clothes_card"));
+
+        // Card 3: Create a closet
         fullList.add(new ClosetItem("Create a closet", "",
                 String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.ic_create_closet)),
                 "create_card"));
@@ -310,7 +316,7 @@ public class MainActivity extends BaseDrawerActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        Log.d("MainActivity", "🎴 Total items in adapter: " + fullList.size() + " (2 static cards + " + userClosets.size() + " user closets)");
+        Log.d("MainActivity", "🎴 Total items in adapter: " + fullList.size() + " (3 static cards + " + userClosets.size() + " user closets)");
     }
 
     private void showEmptyClosetState(RecyclerView recyclerView) {
@@ -319,6 +325,9 @@ public class MainActivity extends BaseDrawerActivity {
         fullList.add(new ClosetItem("Outfit Combinations", "",
                 String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.top_test3)),
                 "outfit_card"));
+        fullList.add(new ClosetItem("All Clothes", "",
+                String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.ic_all_clothes)),
+                "all_clothes_card"));
         fullList.add(new ClosetItem("Create a closet", "",
                 String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.drawable.ic_create_closet)),
                 "create_card"));

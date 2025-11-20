@@ -188,11 +188,12 @@ public class SpecifyDetailsActivity extends AppCompatActivity {
     }
 
     /**
-     * FIXED: Upload snapshot and save outfit - now handles both byte array and URI
+     * FIXED: Use .jpg extension to match your Supabase bucket
      */
     private void uploadAndSaveOutfit(String outfitName, String event, String season, String style) {
         Toast.makeText(this, "Uploading outfit to cloud...", Toast.LENGTH_SHORT).show();
 
+        // ✅ FIXED: Use .jpg extension to match your Supabase bucket
         String fileName = "outfit_" + System.currentTimeMillis() + ".jpg";
 
         if (snapshot != null) {
@@ -227,6 +228,7 @@ public class SpecifyDetailsActivity extends AppCompatActivity {
     private void uploadImageAndSave(Uri imageUri, String name, String event, String season, String style) {
         Toast.makeText(this, "Uploading outfit to cloud...", Toast.LENGTH_SHORT).show();
 
+        // ✅ FIXED: Use .jpg extension to match your Supabase bucket
         String fileName = "outfit_" + System.currentTimeMillis() + ".jpg";
 
         imageUploader.uploadImage(imageUri, "outfits", fileName, new ImageUploader.UploadCallback() {

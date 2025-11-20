@@ -193,16 +193,19 @@ public class OutfitCombinationActivity extends AppCompatActivity
                 // ✅ CONVERT Outfit objects to ClosetContentItem objects
                 outfitItems.clear();
                 for (Outfit outfit : outfits) {
-                    ClosetContentItem item = new ClosetContentItem();
-                    item.setType(ClosetContentItem.ItemType.SNAPSHOT); // ✅ IMPORTANT: Set as SNAPSHOT type
-                    item.setSnapshotPath(outfit.getImageUri()); // ✅ Use imageUri as snapshotPath
-                    item.setName(outfit.getName());
-                    item.setCategory(outfit.getCategory());
-                    item.setSeason(outfit.getSeason());
-                    item.setStyle(outfit.getStyle());
-                    outfitItems.add(item);
+                    // ✅ ADDED: Only show user's own outfits (not suggestions)
+                    if (!outfit.isSuggestion()) {
+                        ClosetContentItem item = new ClosetContentItem();
+                        item.setType(ClosetContentItem.ItemType.SNAPSHOT);
+                        item.setSnapshotPath(outfit.getImageUri());
+                        item.setName(outfit.getName());
+                        item.setCategory(outfit.getCategory());
+                        item.setSeason(outfit.getSeason());
+                        item.setStyle(outfit.getStyle());
+                        outfitItems.add(item);
 
-                    Log.d(TAG, "Converted outfit: " + outfit.getName() + " - " + outfit.getImageUri());
+                        Log.d(TAG, "Converted user outfit: " + outfit.getName() + " - " + outfit.getImageUri());
+                    }
                 }
 
                 runOnUiThread(() -> {
@@ -213,7 +216,7 @@ public class OutfitCombinationActivity extends AppCompatActivity
                     if (outfitItems.isEmpty()) {
                         Toast.makeText(this, "No outfits found. Create some outfits first!", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(this, "Loaded " + outfitItems.size() + " outfits", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Loaded " + outfitItems.size() + " of your outfits", Toast.LENGTH_SHORT).show();
                     }
                 });
 

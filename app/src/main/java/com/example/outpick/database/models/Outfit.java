@@ -11,6 +11,7 @@ public class Outfit {
     private String description;
     private String gender;
     private boolean isFavorite;
+    private boolean isSuggestion; // ✅ ADDED: Flag for admin suggestions vs user outfits
 
     // --- Additional metadata (CRITICAL FIELDS) ---
     private String event;
@@ -43,6 +44,7 @@ public class Outfit {
         this.description = "";
         this.gender = "Unisex";
         this.isFavorite = false;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         initializeMetadata("Casual", "All-Season", "Casual");
     }
 
@@ -58,6 +60,7 @@ public class Outfit {
         this.description = description;
         this.gender = gender;
         this.isFavorite = false;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         initializeMetadata(event, season, style);
     }
 
@@ -72,6 +75,7 @@ public class Outfit {
         this.description = description;
         this.gender = gender;
         this.isFavorite = isFavorite;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         initializeMetadata("", "", "");
     }
 
@@ -88,6 +92,7 @@ public class Outfit {
                   String description, String gender, boolean isFavorite,
                   String event, String season, String style) {
         this(id, imageUri, name, category, description, gender, isFavorite);
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         initializeMetadata(event, season, style);
     }
 
@@ -102,6 +107,7 @@ public class Outfit {
         this.description = description;
         this.gender = gender;
         this.isFavorite = isFavorite;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         initializeMetadata("", "", "");
     }
 
@@ -132,6 +138,7 @@ public class Outfit {
         this.description = description;
         this.gender = gender;
         this.isFavorite = isFavorite;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         this.snapshot = snapshot;
         this.categories = categories;
         initializeMetadata("", "", "");
@@ -148,6 +155,7 @@ public class Outfit {
         this.description = description;
         this.gender = gender;
         this.isFavorite = isFavorite;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         this.imageBytes = imageBytes;
         initializeMetadata(event, "", "");
     }
@@ -157,6 +165,7 @@ public class Outfit {
         this.path = path;
         this.outfitName = outfitName;
         this.name = outfitName;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         initializeMetadata(event, season, style);
         this.category = "";
         this.description = "";
@@ -174,6 +183,7 @@ public class Outfit {
         this.description = description;
         this.gender = gender;
         this.isFavorite = false;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         this.snapshot = snapshot;
         this.categories = categories;
         initializeMetadata("", "", "");
@@ -189,6 +199,7 @@ public class Outfit {
         this.description = description;
         this.gender = gender;
         this.isFavorite = false;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         this.snapshot = snapshot;
         initializeMetadata(event, season, style);
     }
@@ -202,6 +213,7 @@ public class Outfit {
         this.description = description;
         this.gender = "";
         this.isFavorite = false;
+        this.isSuggestion = false; // ✅ ADDED: Default to false
         initializeMetadata("", "", "");
     }
 
@@ -209,6 +221,22 @@ public class Outfit {
         this(imageUri, name, category, description);
         this.gender = gender;
         this.outfitName = name;
+    }
+
+    // ✅ ADDED: Constructor with suggestion flag
+    public Outfit(String id, String imageUri, String name, String category,
+                  String description, String gender, boolean isFavorite,
+                  boolean isSuggestion, String event, String season, String style) {
+        this.id = id;
+        this.imageUri = imageUri;
+        this.name = name;
+        this.outfitName = name;
+        this.category = category;
+        this.description = description;
+        this.gender = gender;
+        this.isFavorite = isFavorite;
+        this.isSuggestion = isSuggestion; // ✅ ADDED: Set suggestion flag
+        initializeMetadata(event, season, style);
     }
 
     // ------------------- GETTERS -------------------
@@ -220,6 +248,7 @@ public class Outfit {
     public String getDescription() { return description; }
     public String getGender() { return gender; }
     public boolean isFavorite() { return isFavorite; }
+    public boolean isSuggestion() { return isSuggestion; } // ✅ ADDED: Getter for suggestion flag
     public String getEvent() { return event; }
     public String getSeason() { return season; }
     public String getStyle() { return style; }
@@ -244,6 +273,7 @@ public class Outfit {
     public void setDescription(String description) { this.description = description; }
     public void setGender(String gender) { this.gender = gender; }
     public void setFavorite(boolean favorite) { this.isFavorite = favorite; }
+    public void setSuggestion(boolean suggestion) { this.isSuggestion = suggestion; } // ✅ ADDED: Setter for suggestion flag
     public void setEvent(String event) { this.event = event; }
     public void setSeason(String season) { this.season = season; }
     public void setStyle(String style) { this.style = style; }
@@ -264,6 +294,6 @@ public class Outfit {
 
     @Override
     public String toString() {
-        return getOutfitName() + " (" + category + ", " + gender + ", " + event + ", " + season + ", " + style + ")";
+        return getOutfitName() + " (" + category + ", " + gender + ", " + event + ", " + season + ", " + style + ", Suggestion: " + isSuggestion + ")";
     }
 }
